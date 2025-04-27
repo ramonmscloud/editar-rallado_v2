@@ -61,10 +61,14 @@
              background-color: rgba(0, 0, 0, 0.05);
         }
         .start-point { /* Color for screen preview */
-            background-color: rgba(76, 175, 80, 0.8); /* Removed !important */
+            background-color: rgba(76, 175, 80, 0.8); /* Green */
         }
         .path { /* Color for screen preview */
-            background-color: rgba(33, 150, 243, 0.7); /* Removed !important */
+            background-color: rgba(33, 150, 243, 0.7); /* Blue background */
+            /* Add outline for thicker appearance */
+            outline: 2px solid rgba(33, 150, 243, 1); /* Solid blue outline */
+            outline-offset: -2px; /* Draw outline inside the border */
+            z-index: 5; /* Ensure outline is drawn above other cells if needed */
         }
 
 
@@ -165,6 +169,7 @@
          }
          .pdf-render-area .path {
              background-color: rgba(33, 150, 243, 0.7) !important; /* Blue */
+             /* Outline might not render well in PDF, rely on background */
          }
 
 
