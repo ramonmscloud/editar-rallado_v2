@@ -61,10 +61,10 @@
              background-color: rgba(0, 0, 0, 0.05);
         }
         .start-point { /* Color for screen preview */
-            background-color: rgba(76, 175, 80, 0.8) !important;
+            background-color: rgba(76, 175, 80, 0.8); /* Removed !important */
         }
         .path { /* Color for screen preview */
-            background-color: rgba(33, 150, 243, 0.7) !important;
+            background-color: rgba(33, 150, 243, 0.7); /* Removed !important */
         }
 
 
@@ -131,9 +131,14 @@
 
         /* --- PDF Generation Styles --- */
         .pdf-render-area {
-            position: absolute;
-            left: -9999px; /* Move off-screen */
+            /* Position fixed but invisible and non-interactive */
+            position: fixed;
             top: 0;
+            left: 0;
+            z-index: -1; /* Behind everything */
+            opacity: 0; /* Fully transparent */
+            pointer-events: none; /* Not interactive */
+            /* --- */
             margin: 0;
             padding: 0;
             background: white;
@@ -704,10 +709,10 @@
 
             // --- Create Temporary Structure for PDF ---
             const pdfRenderDiv = document.createElement('div');
-            pdfRenderDiv.className = 'pdf-render-area'; // Hidden by CSS
+            pdfRenderDiv.className = 'pdf-render-area'; // Styles applied via CSS
             pdfRenderDiv.style.width = `${A4_WIDTH_MM}mm`;
             pdfRenderDiv.style.height = `${A4_HEIGHT_MM}mm`;
-            pdfRenderDiv.style.boxSizing = 'border-box'; // Ensure padding/border included
+            // pdfRenderDiv.style.boxSizing = 'border-box'; // Already in CSS
 
             const printableWidth = A4_WIDTH_MM - (2 * PDF_MARGIN_MM);
             const printableHeight = A4_HEIGHT_MM - (2 * PDF_MARGIN_MM);
@@ -715,8 +720,8 @@
 
              // Calculate uniform spacing for PDF including outer margins
              // Total space available divided by number of gaps (N+1)
-             const pdfSpacingX = currentCols > 0 ? (printableWidth - currentCols * pdfGridSize) / (currentCols + 1) : printableWidth; // Avoid division by zero, use full width if 0 cols
-             const pdfSpacingY = currentRows > 0 ? (printableHeight - currentRows * pdfGridSize) / (currentRows + 1) : printableHeight; // Avoid division by zero, use full height if 0 rows
+             const pdfSpacingX = currentCols > 0 ? (printableWidth - currentCols * pdfGridSize) / (currentCols + 1) : printableWidth;
+             const pdfSpacingY = currentRows > 0 ? (printableHeight - currentRows * pdfGridSize) / (currentRows + 1) : printableHeight;
 
 
             console.log(`PDF Layout: Grid=${pdfGridSize}mm, SpacingX=${pdfSpacingX.toFixed(2)}mm, SpacingY=${pdfSpacingY.toFixed(2)}mm`);
@@ -725,7 +730,6 @@
             for (let r = 0; r < currentRows; r++) {
                 for (let c = 0; c < currentCols; c++) {
                     // Calculate top-left corner including margin and spacing
-                    // Position is margin + first gap + sum of (grid + gap) for previous elements
                     const gridX = PDF_MARGIN_MM + pdfSpacingX + c * (pdfGridSize + pdfSpacingX);
                     const gridY = PDF_MARGIN_MM + pdfSpacingY + r * (pdfGridSize + pdfSpacingY);
 
@@ -754,7 +758,6 @@
                             // Background color applied via classes below
 
                             // Apply coloring based on state using CLASSES
-                            // Check if arrays are large enough before accessing
                             const startPoint = (c < firstRowStartPoints.length) ? firstRowStartPoints[c] : null;
                             if (startPoint && startPoint.row === rCell && startPoint.col === cCell) {
                                 cell.classList.add('start-point'); // Add start-point class
@@ -773,7 +776,8 @@
                 }
             }
 
-            document.body.appendChild(pdfRenderDiv); // Add to DOM for rendering
+            // Add to DOM *before* calling html2pdf
+            document.body.appendChild(pdfRenderDiv);
 
             // --- html2pdf Generation ---
             const options = {
@@ -781,15 +785,15 @@
                 filename: userFilename,
                 image: { type: 'jpeg', quality: 0.97 },
                 html2canvas: {
-                    scale: 3,
+                    scale: 3, // Increased scale for better resolution
                     logging: false,
                     useCORS: true,
-                    backgroundColor: '#ffffff',
+                    backgroundColor: '#ffffff', // Explicit background
                      // Explicitly set width/height for canvas based on target PDF size in pixels
                      width: Math.round(A4_WIDTH_MM * (96 / 25.4)), // Approx pixels at 96 DPI
                      height: Math.round(A4_HEIGHT_MM * (96 / 25.4)),
-                     windowWidth: Math.round(A4_WIDTH_MM * (96 / 25.4)),
-                     windowHeight: Math.round(A4_HEIGHT_MM * (96 / 25.4))
+                     windowWidth: Math.round(A4_WIDTH_MM * (96 / 25.4)), // Match canvas size
+                     windowHeight: Math.round(A4_HEIGHT_MM * (96 / 25.4)) // Match canvas size
                 },
                 jsPDF: {
                     unit: 'mm',
@@ -815,8 +819,10 @@
                      // Re-enable button and remove temp div regardless of success/failure
                      savePdfButton.disabled = false;
                      savePdfButton.textContent = 'Guardar como PDF';
+                     // Ensure removal from body
                      if (document.body.contains(pdfRenderDiv)) {
-                        document.body.removeChild(pdfRenderDiv);
+                         document.body.removeChild(pdfRenderDiv);
+                         console.log("Removed temporary PDF render div.");
                      }
                 });
         }
