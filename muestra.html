@@ -152,16 +152,23 @@
         }
         .pdf-render-area .grid { /* Styles for grids ONLY within the PDF area */
              position: absolute;
-             box-shadow: none;
-             border: 1px solid #999; /* Use pixels, adjusted in JS */
+             box-shadow: 0 0 5px rgba(0,0,0,0.8) !important; /* Sombra más intensa para mejor visibilidad */
+             border: 4px solid #000000 !important; /* Borde mucho más grueso y oscuro */
              background-color: transparent;
              box-sizing: border-box;
+             outline: 2px solid #000000 !important; /* Outline más grueso para doble borde */
+             outline-offset: -2px; /* Outline dentro del borde */
         }
          .pdf-render-area .cell { /* Styles for cells ONLY within the PDF area */
              position: absolute;
-             border: 1px solid #ccc; /* Use pixels, adjusted in JS */
+             border: 2.5px solid #000000 !important; /* Borde mucho más grueso y negro para mejor visibilidad */
              background-color: transparent; /* Default background */
              box-sizing: border-box;
+             outline: 1px solid #000000 !important; /* Outline más visible */
+             outline-offset: -1px; /* Outline dentro del borde */
+             /* Añadir propiedades adicionales para forzar la visibilidad */
+             -webkit-print-color-adjust: exact !important; /* Para Chrome */
+             color-adjust: exact !important; /* Estándar */
          }
          /* PDF specific colors using classes */
          .pdf-render-area .start-point {
@@ -810,8 +817,24 @@
                     gridDiv.style.top = `${gridY}px`;
                     gridDiv.style.width = `${pdfGridSizePx}px`;
                     gridDiv.style.height = `${pdfGridSizePx}px`;
-                    gridDiv.style.borderWidth = `${pdfGridBorderWidth}px`; // Set border width in px
+                    // Aumentar el grosor del borde para mejor visibilidad
+                    const enhancedBorderWidth = Math.max(3, pdfGridBorderWidth * 2);
+                    gridDiv.style.border = `${enhancedBorderWidth}px solid #000000`; // Borde mucho más grueso y negro
                     gridDiv.style.boxSizing = 'border-box';
+                    // Añadir un outline adicional para reforzar la visibilidad
+                    gridDiv.style.outline = '2px solid #000000';
+                    gridDiv.style.outlineOffset = '-1px';
+                    
+                    // Añadir un borde interno adicional para reforzar la visibilidad
+                    const innerBorderDiv = document.createElement('div');
+                    innerBorderDiv.style.position = 'absolute';
+                    innerBorderDiv.style.top = '3px';
+                    innerBorderDiv.style.left = '3px';
+                    innerBorderDiv.style.right = '3px';
+                    innerBorderDiv.style.bottom = '3px';
+                    innerBorderDiv.style.border = '2px solid #000000';
+                    innerBorderDiv.style.pointerEvents = 'none';
+                    gridDiv.appendChild(innerBorderDiv);
 
                     const cellWidthPx = pdfGridSizePx / currentN;
                     const cellHeightPx = pdfGridSizePx / currentN;
@@ -825,8 +848,24 @@
                             cell.style.top = `${rCell * cellHeightPx}px`;
                             cell.style.width = `${cellWidthPx}px`;
                             cell.style.height = `${cellHeightPx}px`;
-                            cell.style.borderWidth = `${pdfCellBorderWidth}px`; // Set border width in px
+                            // Aplicar bordes mucho más fuertes directamente
+                            const enhancedCellBorderWidth = Math.max(2.5, pdfCellBorderWidth * 2.5);
+                            cell.style.border = `${enhancedCellBorderWidth}px solid #000000`; // Borde mucho más grueso y negro
                             cell.style.boxSizing = 'border-box';
+                            // Añadir un outline adicional para reforzar la visibilidad
+                            cell.style.outline = '1px solid #000000';
+                            cell.style.outlineOffset = '-1px';
+                            
+                            // Añadir un div interno para reforzar los bordes
+                            const innerBorderDiv = document.createElement('div');
+                            innerBorderDiv.style.position = 'absolute';
+                            innerBorderDiv.style.top = '1px';
+                            innerBorderDiv.style.left = '1px';
+                            innerBorderDiv.style.right = '1px';
+                            innerBorderDiv.style.bottom = '1px';
+                            innerBorderDiv.style.border = '1px solid #000000';
+                            innerBorderDiv.style.pointerEvents = 'none';
+                            cell.appendChild(innerBorderDiv);
 
                             // Apply coloring based on state using CLASSES
                             const startPoint = (c < firstRowStartPoints.length) ? firstRowStartPoints[c] : null;
@@ -846,6 +885,65 @@
                 }
             }
 
+            // Crear un canvas vectorial para dibujar líneas adicionales sobre toda la estructura
+            const vectorCanvas = document.createElement('canvas');
+            vectorCanvas.width = a4WidthPx;
+            vectorCanvas.height = a4HeightPx;
+            vectorCanvas.style.position = 'absolute';
+            vectorCanvas.style.top = '0';
+            vectorCanvas.style.left = '0';
+            vectorCanvas.style.pointerEvents = 'none';
+            vectorCanvas.style.zIndex = '1000'; // Asegurar que esté por encima de todo
+            
+            const ctx = vectorCanvas.getContext('2d');
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 3; // Línea gruesa para mejor visibilidad
+            
+            // Dibujar líneas vectoriales para cada rejilla
+            for (let r = 0; r < currentRows; r++) {
+                for (let c = 0; c < currentCols; c++) {
+                    // Calcular posición de la rejilla
+                    const gridX = pdfMarginPx + offsetX + c * (pdfGridSizePx + pdfSpacingPx);
+                    const gridY = pdfMarginPx + offsetY + r * (pdfGridSizePx + pdfSpacingPx);
+                    
+                    // Dibujar borde exterior de la rejilla (doble línea para mayor visibilidad)
+                    // Primera línea (exterior)
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(gridX, gridY, pdfGridSizePx, pdfGridSizePx);
+                    
+                    // Segunda línea (interior)
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(gridX + 4, gridY + 4, pdfGridSizePx - 8, pdfGridSizePx - 8);
+                    
+                    // Dibujar líneas de celdas
+                    const cellWidthPx = pdfGridSizePx / currentN;
+                    const cellHeightPx = pdfGridSizePx / currentN;
+                    
+                    ctx.lineWidth = 1.5;
+                    
+                    // Líneas horizontales internas
+                    for (let i = 1; i < currentN; i++) {
+                        const y = gridY + i * cellHeightPx;
+                        ctx.beginPath();
+                        ctx.moveTo(gridX, y);
+                        ctx.lineTo(gridX + pdfGridSizePx, y);
+                        ctx.stroke();
+                    }
+                    
+                    // Líneas verticales internas
+                    for (let i = 1; i < currentN; i++) {
+                        const x = gridX + i * cellWidthPx;
+                        ctx.beginPath();
+                        ctx.moveTo(x, gridY);
+                        ctx.lineTo(x, gridY + pdfGridSizePx);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            // Añadir el canvas vectorial al contenedor
+            pdfRenderDiv.appendChild(vectorCanvas);
+            
             // Add to DOM *before* calling html2pdf
             document.body.appendChild(pdfRenderDiv);
 
@@ -853,17 +951,57 @@
             const options = {
                  margin: [0, 0, 0, 0], // Use 0 margin as positioning is absolute within the sized div
                 filename: userFilename,
-                image: { type: 'jpeg', quality: 0.97 },
+                image: { type: 'jpeg', quality: 0.99 }, // Aumentar calidad
                 html2canvas: {
-                    scale: 3, // Use high scale for better quality from pixel source
+                    scale: 4, // Aumentar escala para mejor calidad
                     logging: false,
                     useCORS: true,
                     backgroundColor: '#ffffff', // Explicit background
-                     // Let html2canvas determine width/height from the element
-                     // width: a4WidthPx, // Explicit width/height might interfere with scaling
-                     // height: a4HeightPx,
-                     // windowWidth: a4WidthPx,
-                     // windowHeight: a4HeightPx
+                    onclone: function(clonedDoc) {
+                        // Aplicar estilos más fuertes a todos los elementos de la rejilla en el documento clonado
+                        const grids = clonedDoc.querySelectorAll('.pdf-render-area .grid');
+                        const cells = clonedDoc.querySelectorAll('.pdf-render-area .cell');
+                        
+                        // Dibujar líneas manualmente para cada rejilla para asegurar visibilidad
+                        grids.forEach(grid => {
+                            // Aplicar múltiples técnicas para asegurar visibilidad
+                            grid.style.border = `4px solid #000000`; // Borde mucho más grueso
+                            grid.style.outline = `2px solid #000000`; // Outline más grueso
+                            grid.style.outlineOffset = `-2px`;
+                            grid.style.boxShadow = `0 0 5px rgba(0,0,0,0.8)`; // Sombra más intensa
+                            
+                            // Añadir un borde interno adicional
+                            const innerBorder = document.createElement('div');
+                            innerBorder.style.position = 'absolute';
+                            innerBorder.style.top = '3px';
+                            innerBorder.style.left = '3px';
+                            innerBorder.style.right = '3px';
+                            innerBorder.style.bottom = '3px';
+                            innerBorder.style.border = '2px solid #000000';
+                            innerBorder.style.pointerEvents = 'none';
+                            grid.appendChild(innerBorder);
+                        });
+                        
+                        // Crear un nuevo canvas vectorial en el documento clonado
+                        const clonedCanvas = clonedDoc.querySelector('.pdf-render-area canvas');
+                        if (clonedCanvas) {
+                            // Asegurar que el canvas esté visible y por encima de todo
+                            clonedCanvas.style.opacity = '1';
+                            clonedCanvas.style.zIndex = '2000';
+                        }
+                        
+                        cells.forEach(cell => {
+                            // Aplicar bordes mucho más visibles a las celdas
+                            cell.style.border = `2.5px solid #000000`; // Borde más grueso y negro
+                            cell.style.outline = `1px solid #000000`; // Outline más visible
+                            cell.style.outlineOffset = `-1px`;
+                        });
+                    },
+                    // Let html2canvas determine width/height from the element
+                    // width: a4WidthPx, // Explicit width/height might interfere with scaling
+                    // height: a4HeightPx,
+                    // windowWidth: a4WidthPx,
+                    // windowHeight: a4HeightPx
                 },
                 jsPDF: {
                     unit: 'mm', // Output unit is still mm
