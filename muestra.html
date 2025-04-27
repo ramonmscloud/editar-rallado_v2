@@ -1072,8 +1072,9 @@
             grids.forEach(grid => {
                 const rect = document.createElementNS(svgNS, 'rect');
                 const bounds = grid.getBoundingClientRect();
-                rect.setAttribute('x', bounds.x);
-                rect.setAttribute('y', bounds.y);
+                const svgRect = svg.getBoundingClientRect();
+                rect.setAttribute('x', bounds.x - svgRect.x);
+                rect.setAttribute('y', bounds.y - svgRect.y);
                 rect.setAttribute('width', bounds.width);
                 rect.setAttribute('height', bounds.height);
                 rect.setAttribute('stroke', '#000000');
@@ -1086,8 +1087,9 @@
             cells.forEach(cell => {
                 const rect = document.createElementNS(svgNS, 'rect');
                 const bounds = cell.getBoundingClientRect();
-                rect.setAttribute('x', bounds.x);
-                rect.setAttribute('y', bounds.y);
+                const svgRect = svg.getBoundingClientRect();
+                rect.setAttribute('x', bounds.x - svgRect.x);
+                rect.setAttribute('y', bounds.y - svgRect.y);
                 rect.setAttribute('width', bounds.width);
                 rect.setAttribute('height', bounds.height);
                 rect.setAttribute('stroke', '#000000');
