@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edición de Muestras (A4, 1cm Fijo)</title>
+    <title>Edición de Muestras (A4, Espaciado Config.)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -115,7 +115,7 @@
         .config-row {
             display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
         }
-        .config-row label { min-width: 120px; font-weight: bold; }
+        .config-row label { min-width: 140px; /* Increased width */ font-weight: bold; }
         .config-row input[type="number"] {
             width: 70px; padding: 6px 8px; border: 1px solid #ccc;
             border-radius: 4px; text-align: center;
@@ -190,18 +190,18 @@
 </head>
 <body>
     <div class="container">
-        <h1>Edición de Muestras (A4, 1cm Fijo)</h1>
+        <h1>Edición de Muestras (A4, Espaciado Config.)</h1>
 
         <div class="instructions">
             <h3>Instrucciones:</h3>
             <ol>
                 <li>Configura la **Dimensión (NxN)** de las celdas dentro de cada rejilla.</li>
-                <li>Define el **Número de Filas y Columnas** de rejillas que deseas generar (máximo indicado para A4 con espaciado de 1cm).</li>
+                <li>Define el **Número de Filas y Columnas** de rejillas que deseas generar.</li>
+                <li>Define el **Espaciado PDF (mm)** entre las rejillas para el archivo final (por defecto 10mm = 1cm).</li>
+                <li>El sistema indicará el **Máximo de Filas/Columnas** que caben en un A4 con el espaciado elegido.</li>
                 <li>Pulsa **"Aplicar Configuración"**. La rejilla (cuadrada en pantalla) se creará automáticamente.</li>
-                <li>Marca un punto de inicio (verde) haciendo clic en una celda de cualquier rejilla de la **primera fila**.</li>
-                <li>Dibuja un trazo (azul) haciendo clic y arrastrando dentro de esa misma rejilla de la primera fila.</li>
-                <li>El punto de inicio (verde) se replicará automáticamente en las rejillas inferiores.</li>
-                <li>Usa "Reiniciar Marcadores" para borrar las marcas o "Guardar como PDF" para exportar la vista a un A4 con rejillas de 1cm x 1cm y **separación fija de 1cm** (se te pedirá un nombre de archivo).</li>
+                <li>Marca un punto de inicio (verde) y dibuja un trazo (azul) en la **primera fila** de rejillas.</li>
+                <li>Usa "Reiniciar Marcadores" o "Guardar como PDF" (se te pedirá un nombre).</li>
             </ol>
         </div>
 
@@ -228,6 +228,11 @@
                 <span class="info">(Máx A4: <span id="maxColsInfo">--</span>)</span>
             </div>
              <div class="config-row">
+                <label for="pdfSpacingInput">Espaciado PDF (mm):</label>
+                <input type="number" id="pdfSpacingInput" value="10" min="0" step="0.5">
+                 <span class="info">(Separación entre rejillas en el PDF)</span>
+            </div>
+             <div class="config-row">
                  <button id="applyConfigBtn">Aplicar Configuración</button>
              </div>
         </div>
@@ -252,13 +257,14 @@
         const A4_HEIGHT_MM = 297;
         const PDF_MARGIN_MM = 10; // Margin for PDF content area
         const PDF_GRID_SIZE_MM = 10; // Fixed grid size (1cm) in PDF
-        const PDF_SPACING_MM = 10; // *** Fixed spacing (1cm) between grids in PDF ***
+        // const PDF_SPACING_MM = 10; // Spacing is now configurable
         const DPI = 96; // Assumed DPI for pixel calculations
         const MM_TO_PX = DPI / 25.4; // Conversion factor
 
         let gridDimension = 5;   // NxN cells inside each grid
         let numGridRows = 13;    // Number of grid rows to generate
         let numGridCols = 9;     // Number of grid columns to generate
+        let pdfSpacingMm = 10;   // Spacing between grids in PDF (default 1cm)
         let maxRowsA4 = 0;       // Calculated max rows for A4
         let maxColsA4 = 0;       // Calculated max cols for A4
 
@@ -275,6 +281,7 @@
         const quickDimButtons = document.querySelectorAll('.quick-dimension-select button');
         const numRowsInput = document.getElementById('numRowsInput');
         const numColsInput = document.getElementById('numColsInput');
+        const pdfSpacingInput = document.getElementById('pdfSpacingInput'); // New input element
         const maxRowsInfo = document.getElementById('maxRowsInfo');
         const maxColsInfo = document.getElementById('maxColsInfo');
         const applyConfigBtn = document.getElementById('applyConfigBtn');
@@ -286,7 +293,7 @@
 
 
         // --- Initialization ---
-        calculateAndDisplayMaxGrids();
+        calculateAndDisplayMaxGrids(); // Initial calculation based on default spacing
         resetState(); // Initialize state variables
 
 
@@ -298,6 +305,10 @@
         resetButton.addEventListener('click', handleReset);
         savePdfButton.addEventListener('click', handleSavePdf);
         window.addEventListener('resize', handleResize); // Adjust overlay on resize
+        // Recalculate max grids if spacing changes
+        pdfSpacingInput.addEventListener('change', calculateAndDisplayMaxGrids);
+        pdfSpacingInput.addEventListener('input', calculateAndDisplayMaxGrids); // Update while typing
+
 
         // --- State Management ---
         function resetState() {
@@ -313,7 +324,7 @@
             messageDiv.style.display = 'block'; // Show initial message
             resetButton.disabled = true; // Disable buttons
             savePdfButton.disabled = true;
-            console.log(`State reset. Grid Dim: ${gridDimension}x${gridDimension}, Grid Layout: ${numGridRows}x${numGridCols}`);
+            console.log(`State reset. Grid Dim: ${gridDimension}x${gridDimension}, Grid Layout: ${numGridRows}x${numGridCols}, PDF Spacing: ${pdfSpacingMm}mm`);
         }
 
         // Update state arrays based on current row/col count
@@ -326,28 +337,43 @@
         // --- Configuration & Validation ---
 
         function calculateAndDisplayMaxGrids() {
+            // Read current spacing value for calculation
+            const currentPdfSpacingMm = parseFloat(pdfSpacingInput.value) || 0; // Use 0 if invalid
+            if (currentPdfSpacingMm < 0) {
+                maxRowsInfo.textContent = "N/A";
+                maxColsInfo.textContent = "N/A";
+                return; // Don't calculate if spacing is negative
+            }
+
+
             const printableWidth = A4_WIDTH_MM - (2 * PDF_MARGIN_MM);
             const printableHeight = A4_HEIGHT_MM - (2 * PDF_MARGIN_MM);
 
-            // Calculate max based on fixed grid size and fixed spacing (only between grids)
-            // Formula: floor((Total Printable Space - Size of First Grid) / (Grid Size + Fixed Spacing)) + 1
-            maxColsA4 = printableWidth >= PDF_GRID_SIZE_MM ? Math.floor((printableWidth - PDF_GRID_SIZE_MM) / (PDF_GRID_SIZE_MM + PDF_SPACING_MM)) + 1 : 0;
-            maxRowsA4 = printableHeight >= PDF_GRID_SIZE_MM ? Math.floor((printableHeight - PDF_GRID_SIZE_MM) / (PDF_GRID_SIZE_MM + PDF_SPACING_MM)) + 1 : 0;
+            // Calculate max based on fixed grid size and CURRENT spacing
+            // Formula: floor((Total Printable Space - Size of First Grid) / (Grid Size + Current Spacing)) + 1
+            maxColsA4 = printableWidth >= PDF_GRID_SIZE_MM ? Math.floor((printableWidth - PDF_GRID_SIZE_MM) / (PDF_GRID_SIZE_MM + currentPdfSpacingMm)) + 1 : 0;
+            maxRowsA4 = printableHeight >= PDF_GRID_SIZE_MM ? Math.floor((printableHeight - PDF_GRID_SIZE_MM) / (PDF_GRID_SIZE_MM + currentPdfSpacingMm)) + 1 : 0;
+
+            // Ensure calculated max is not negative
+            maxColsA4 = Math.max(0, maxColsA4);
+            maxRowsA4 = Math.max(0, maxRowsA4);
 
 
             maxColsInfo.textContent = maxColsA4;
             maxRowsInfo.textContent = maxRowsA4;
 
             // Set max attributes for input fields dynamically
-            numRowsInput.max = maxRowsA4;
-            numColsInput.max = maxColsA4;
-            console.log(`Calculated Max Grids for A4 (1cm grid, ${PDF_SPACING_MM}mm fixed spacing): ${maxRowsA4} Rows, ${maxColsA4} Cols`);
+            numRowsInput.max = maxRowsA4 > 0 ? maxRowsA4 : 1; // Allow at least 1 if calculation yields 0
+            numColsInput.max = maxColsA4 > 0 ? maxColsA4 : 1;
+
+            console.log(`Calculated Max Grids for A4 (1cm grid, ${currentPdfSpacingMm}mm spacing): ${maxRowsA4} Rows, ${maxColsA4} Cols`);
         }
 
         function applyConfiguration() {
             const newDimension = parseInt(gridDimensionInput.value);
             const newRows = parseInt(numRowsInput.value);
             const newCols = parseInt(numColsInput.value);
+            const newPdfSpacing = parseFloat(pdfSpacingInput.value); // Read new spacing
             let configValid = true;
 
             // Validate Dimension
@@ -357,14 +383,22 @@
                 configValid = false;
             }
 
-            // Validate Rows/Cols against calculated maximums
+             // Validate Spacing
+             if (isNaN(newPdfSpacing) || newPdfSpacing < 0) {
+                showStatusMessage('Error: Espaciado PDF debe ser 0 o mayor.', 'error');
+                pdfSpacingInput.value = pdfSpacingMm; // Revert
+                configValid = false;
+            }
+
+            // Validate Rows/Cols against CURRENT calculated maximums (which depend on spacing)
+            calculateAndDisplayMaxGrids(); // Ensure max values are up-to-date before validation
             if (isNaN(newRows) || newRows < 1 || newRows > maxRowsA4) {
-                showStatusMessage(`Error: Nº Filas debe ser entre 1 y ${maxRowsA4}.`, 'error');
+                showStatusMessage(`Error: Nº Filas debe ser entre 1 y ${maxRowsA4} con el espaciado actual.`, 'error');
                 numRowsInput.value = numGridRows; // Revert
                 configValid = false;
             }
             if (isNaN(newCols) || newCols < 1 || newCols > maxColsA4) {
-                showStatusMessage(`Error: Nº Columnas debe ser entre 1 y ${maxColsA4}.`, 'error');
+                showStatusMessage(`Error: Nº Columnas debe ser entre 1 y ${maxColsA4} con el espaciado actual.`, 'error');
                 numColsInput.value = numGridCols; // Revert
                 configValid = false;
             }
@@ -387,10 +421,16 @@
                  configChanged = true;
                  console.log(`Grid layout changed to: ${numGridRows} Rows x ${numGridCols} Columns`);
              }
+             if (newPdfSpacing !== pdfSpacingMm) {
+                 pdfSpacingMm = newPdfSpacing;
+                 configChanged = true;
+                 console.log(`PDF spacing changed to: ${pdfSpacingMm}mm`);
+                 // Max grids already recalculated by input/change listener
+             }
 
             // --- Create or Update Grid ---
             messageDiv.style.display = 'none'; // Hide initial message now
-            showStatusMessage(`Aplicando (${gridDimension}x${gridDimension}, ${numGridRows}x${numGridCols})...`, 'info');
+            showStatusMessage(`Aplicando (${gridDimension}x${gridDimension}, ${numGridRows}x${numGridCols}, ${pdfSpacingMm}mm)...`, 'info');
             createManualGridOverlay(); // Create/Recreate the visual grid
 
             // Enable buttons only if grid creation was successful
@@ -704,11 +744,13 @@
                 return;
             }
 
+            // Read current config values
             const currentRows = numGridRows;
             const currentCols = numGridCols;
             const currentN = gridDimension;
+            const currentPdfSpacingMm = pdfSpacingMm; // Use the stored value
 
-            const defaultFilename = `rejillas_${currentN}x${currentN}_${currentRows}x${currentCols}.pdf`;
+            const defaultFilename = `rejillas_${currentN}x${currentN}_${currentRows}x${currentCols}_${currentPdfSpacingMm}mm.pdf`;
             let userFilename = prompt("Introduce el nombre para guardar el archivo PDF:", defaultFilename);
 
             if (userFilename === null) { console.log("PDF save cancelled."); showStatusMessage('Guardado cancelado.', 'warning'); return; }
@@ -726,7 +768,7 @@
             const a4HeightPx = Math.round(A4_HEIGHT_MM * MM_TO_PX);
             const pdfMarginPx = Math.round(PDF_MARGIN_MM * MM_TO_PX);
             const pdfGridSizePx = Math.round(PDF_GRID_SIZE_MM * MM_TO_PX);
-            const pdfSpacingPx = Math.round(PDF_SPACING_MM * MM_TO_PX); // Fixed spacing in pixels
+            const pdfSpacingPx = Math.round(currentPdfSpacingMm * MM_TO_PX); // Use current spacing in pixels
 
             pdfRenderDiv.style.width = `${a4WidthPx}px`;
             pdfRenderDiv.style.height = `${a4HeightPx}px`;
