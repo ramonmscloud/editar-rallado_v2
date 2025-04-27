@@ -21,15 +21,35 @@
             gap: 20px;
         }
 
-        .grid {
+        /* Screen Preview Styles */
+        .grid-container {
+            width: 100%;
+            aspect-ratio: 4 / 3; /* Adjust aspect ratio for screen preview */
+            max-height: 70vh; /* Limit screen preview height */
+            margin: 0 auto;
+            position: relative;
+            border: 1px dashed #aaa;
+            padding: 0;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: auto;
+            z-index: 100;
+        }
+        .grid { /* Style for grids in screen preview */
             position: absolute;
             background-color: rgba(255, 255, 255, 0.1);
             box-sizing: border-box;
             box-shadow: 0 0 2px rgba(0,0,0,0.2);
             border: 1px solid rgba(200, 200, 200, 0.6); /* Grid border */
         }
-
-        .cell {
+        .cell { /* Style for cells in screen preview */
             position: absolute;
             border: 1px solid rgba(0, 0, 255, 0.3); /* Cell border */
             box-sizing: border-box;
@@ -37,19 +57,18 @@
             background-color: rgba(255, 255, 255, 0.0);
             transition: background-color 0.1s ease;
         }
-
         .cell:hover {
              background-color: rgba(0, 0, 0, 0.05);
         }
-
-        .start-point {
+        .start-point { /* Color for screen preview */
             background-color: rgba(76, 175, 80, 0.8) !important;
         }
-
-        .path {
+        .path { /* Color for screen preview */
             background-color: rgba(33, 150, 243, 0.7) !important;
         }
 
+
+        /* Controls and UI Elements */
         button {
             padding: 10px 15px;
             background-color: #4CAF50;
@@ -66,165 +85,92 @@
         button:hover:not(:disabled) {
             background-color: #45a049;
         }
-
-
         .instructions {
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            border: 1px solid #eee;
+            background-color: #f9f9f9; padding: 15px; border-radius: 4px;
+            margin-bottom: 20px; border: 1px solid #eee;
         }
+        #savePdfButton { background-color: #FF5722; }
+        #savePdfButton:hover:not(:disabled) { background-color: #E64A19; }
 
-        #savePdfButton {
-            background-color: #FF5722;
-        }
-        #savePdfButton:hover:not(:disabled) {
-            background-color: #E64A19;
-        }
-
-        .grid-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: auto;
-            z-index: 100;
-        }
-
-        .grid-container {
-            width: 100%;
-            aspect-ratio: 4 / 3; /* Adjust aspect ratio for screen preview */
-            max-height: 70vh; /* Limit screen preview height */
-            margin: 0 auto;
-            position: relative;
-            border: 1px dashed #aaa;
-            padding: 0;
-            background-color: #f0f0f0;
-            overflow: hidden;
-        }
-
-        /* Styles for messages */
+        /* Status Messages */
         .status-message {
-            padding: 8px 12px; /* Smaller padding */
-            border-radius: 4px; /* Slightly less rounded */
-            margin: 8px 0; /* Smaller margin */
-            text-align: center;
-            font-weight: normal; /* Normal weight */
-            font-size: 0.9em; /* Slightly smaller font */
+            padding: 8px 12px; border-radius: 4px; margin: 8px 0;
+            text-align: center; font-weight: normal; font-size: 0.9em;
         }
         .status-success { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
         .status-warning { background-color: #fff8e1; color: #ff8f00; border: 1px solid #ffecb3; }
         .status-error { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
         .status-info { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
 
-
-        /* Styles for dimension control */
+        /* Configuration Section */
         .config-section {
-            background-color: #f0f8ff;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            display: flex;
-            flex-direction: column; /* Stack controls vertically */
-            gap: 15px; /* Increased gap */
-            border: 1px solid #d6eaff;
+            background-color: #f0f8ff; padding: 15px; border-radius: 5px;
+            margin-bottom: 15px; display: flex; flex-direction: column;
+            gap: 15px; border: 1px solid #d6eaff;
         }
         .config-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 10px;
+            display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
         }
-        .config-row label {
-            min-width: 120px; /* Align labels */
-            font-weight: bold;
-        }
+        .config-row label { min-width: 120px; font-weight: bold; }
         .config-row input[type="number"] {
-            width: 70px; /* Wider input */
-            padding: 6px 8px; /* Adjusted padding */
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            text-align: center;
+            width: 70px; padding: 6px 8px; border: 1px solid #ccc;
+            border-radius: 4px; text-align: center;
         }
-        .config-row .info {
-            font-size: 0.85em;
-            color: #555;
-            margin-left: 5px;
-        }
-
-
-        .help-text {
-            font-size: 0.85em;
-            color: #666;
-            margin-left: 5px;
-        }
-
-        .quick-dimension-select {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-            margin-left: 10px;
-        }
+        .config-row .info { font-size: 0.85em; color: #555; margin-left: 5px; }
+        .quick-dimension-select { display: flex; gap: 5px; align-items: center; margin-left: 10px; }
         .quick-dimension-select button {
             background-color: #e0e0e0; border: 1px solid #ccc; border-radius: 3px;
             padding: 3px 8px; font-size: 0.85em; cursor: pointer; color: #333;
         }
         .quick-dimension-select button:hover { background-color: #d0d0d0; }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
+        .button-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         #messageDiv {
             text-align: center; padding: 20px; background-color: #f5f5f5;
             border-radius: 8px; color: #555; font-style: italic; margin-top: 10px;
         }
 
-        /* PDF Generation temporary div - hidden */
+        /* --- PDF Generation Styles --- */
         .pdf-render-area {
             position: absolute;
             left: -9999px; /* Move off-screen */
             top: 0;
             margin: 0;
-            padding: 0; /* Padding handled by internal content positioning */
+            padding: 0;
             background: white;
             box-sizing: border-box;
             /* Dimensions set in JS */
         }
-        .pdf-render-area .grid {
-             box-shadow: none; /* No shadow in PDF */
+        .pdf-render-area .grid { /* Styles for grids ONLY within the PDF area */
+             position: absolute;
+             box-shadow: none;
              border: 0.2mm solid #999; /* Thinner border in mm for PDF */
+             background-color: transparent;
+             box-sizing: border-box;
         }
-         .pdf-render-area .cell {
+         .pdf-render-area .cell { /* Styles for cells ONLY within the PDF area */
+             position: absolute;
              border: 0.1mm solid #ccc; /* Even thinner cell border */
+             background-color: transparent; /* Default background */
+             box-sizing: border-box;
+         }
+         /* PDF specific colors using classes */
+         .pdf-render-area .start-point {
+             background-color: rgba(76, 175, 80, 0.8) !important; /* Green */
+         }
+         .pdf-render-area .path {
+             background-color: rgba(33, 150, 243, 0.7) !important; /* Blue */
          }
 
 
         /* Responsive adjustments */
         @media (max-width: 700px) {
-             .config-row {
-                 flex-direction: column;
-                 align-items: flex-start;
-                 gap: 5px;
-             }
-             .config-row label {
-                 min-width: unset;
-             }
-             .config-row .info {
-                 margin-left: 0;
-             }
+             .config-row { flex-direction: column; align-items: flex-start; gap: 5px; }
+             .config-row label { min-width: unset; }
+             .config-row .info { margin-left: 0; }
             .quick-dimension-select { margin-left: 0; }
         }
         @media (max-width: 600px) {
-             .button-group {
-                flex-direction: column;
-                align-items: stretch;
-            }
+             .button-group { flex-direction: column; align-items: stretch; }
             h1 { font-size: 1.5em; text-align: center; }
             .grid-container { max-height: 60vh; }
         }
@@ -489,8 +435,9 @@
             const availableHeightForGrids = containerHeight - totalVerticalSpacing;
 
             // Calculate max possible size per grid based on available space and number of grids
-            const maxGridWidth = availableWidthForGrids / numGridCols;
-            const maxGridHeight = availableHeightForGrids / numGridRows;
+            const maxGridWidth = numGridCols > 0 ? availableWidthForGrids / numGridCols : 0;
+            const maxGridHeight = numGridRows > 0 ? availableHeightForGrids / numGridRows : 0;
+
 
             // Ensure grids are square by taking the minimum dimension
             const screenGridSize = Math.floor(Math.min(maxGridWidth, maxGridHeight));
@@ -632,10 +579,11 @@
                  isDrawing = true;
                  currentDrawingGrid = { row: gridRow, col: gridCol };
                  // Ensure state arrays are correctly sized before accessing
-                 if (!firstRowStartPoints[gridCol]) firstRowStartPoints[gridCol] = null;
+                 if (gridCol >= firstRowStartPoints.length) firstRowStartPoints.length = gridCol + 1; // Expand if needed
                  firstRowStartPoints[gridCol] = { row: cellRow, col: cellCol };
 
                  if (!paths[gridRow]) paths[gridRow] = []; // Ensure row array exists
+                 if (gridCol >= paths[gridRow].length) paths[gridRow].length = gridCol + 1; // Expand if needed
                  if (!paths[gridRow][gridCol]) paths[gridRow][gridCol] = []; // Ensure col array exists
                  paths[gridRow][gridCol] = [{ row: cellRow, col: cellCol }]; // Start new path
 
@@ -654,8 +602,8 @@
 
              // Continue drawing only if in the same grid where started
              if (gridRow === currentDrawingGrid.row && gridCol === currentDrawingGrid.col) {
-                 // Ensure path array exists
-                 if (!paths[gridRow] || !paths[gridRow][gridCol]) return;
+                 // Ensure path array exists and is large enough
+                 if (!paths[gridRow] || gridCol >= paths[gridRow].length || !paths[gridRow][gridCol]) return;
                  const currentPath = paths[gridRow][gridCol];
                  const lastPoint = currentPath[currentPath.length - 1];
                  // Add cell if different from last and within bounds
@@ -796,25 +744,26 @@
                     for (let rCell = 0; rCell < currentN; rCell++) {
                         for (let cCell = 0; cCell < currentN; cCell++) {
                             const cell = document.createElement('div');
-                            cell.className = 'cell';
+                            cell.className = 'cell'; // Base class for border
                             cell.style.position = 'absolute';
                             cell.style.left = `${cCell * cellWidthMm}mm`;
                             cell.style.top = `${rCell * cellHeightMm}mm`;
                             cell.style.width = `${cellWidthMm}mm`;
                             cell.style.height = `${cellHeightMm}mm`;
                             cell.style.boxSizing = 'border-box';
-                            cell.style.backgroundColor = 'transparent'; // Default background
+                            // Background color applied via classes below
 
-                            // Apply coloring based on state
+                            // Apply coloring based on state using CLASSES
                             // Check if arrays are large enough before accessing
                             const startPoint = (c < firstRowStartPoints.length) ? firstRowStartPoints[c] : null;
                             if (startPoint && startPoint.row === rCell && startPoint.col === cCell) {
-                                cell.style.backgroundColor = 'rgba(76, 175, 80, 0.8)'; // Green
+                                cell.classList.add('start-point'); // Add start-point class
                             } else if (r === 0) { // Path only on first row of grids
                                 const pathPoints = (paths[r] && c < paths[r].length && paths[r][c]) ? paths[r][c] : [];
                                 const isPath = pathPoints.some(p => p.row === rCell && p.col === cCell);
+                                // Add path class only if it's a path point AND not the start point
                                 if (isPath && !(startPoint && startPoint.row === rCell && startPoint.col === cCell)) {
-                                     cell.style.backgroundColor = 'rgba(33, 150, 243, 0.7)'; // Blue
+                                     cell.classList.add('path'); // Add path class
                                 }
                             }
                             gridDiv.appendChild(cell);
