@@ -818,8 +818,8 @@
             // Create PDF grid elements using PIXELS - limited to first 3 rows and first 2 columns only
             // Determine how many rows to actually render (either 3 or less if currentRows is less than 3)
             const rowsToRender = Math.min(3, currentRows);
-            // Determine how many columns to actually render (either 2 or less if currentCols is less than 2)
             const colsToRender = Math.min(2, currentCols);
+            const gridOffsetX = (pdfGridSizePx + pdfSpacingPx) * 2;
             
             for (let r = 0; r < rowsToRender; r++) {
                 for (let c = 0; c < colsToRender; c++) {
