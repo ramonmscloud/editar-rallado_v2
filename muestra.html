@@ -764,6 +764,19 @@
             if (userFilename.trim() === "") { userFilename = defaultFilename; }
             if (!userFilename.toLowerCase().endsWith('.pdf')) { userFilename += '.pdf'; }
 
+            // Add row number to each grid
+            const gridElements = document.querySelectorAll('.grid');
+            gridElements.forEach((grid, index) => {
+                const rowNumber = document.createElement('div');
+                rowNumber.textContent = `Fila ${index + 1}`;
+                rowNumber.style.position = 'absolute';
+                rowNumber.style.top = '2mm';
+                rowNumber.style.left = '2mm';
+                rowNumber.style.fontSize = '8pt';
+                rowNumber.style.color = '#000';
+                grid.appendChild(rowNumber);
+            });
+
             showStatusMessage('Generando PDF (puede tardar unos segundos)...', 'info');
 
             // --- Create Temporary Structure for PDF ---
@@ -956,9 +969,9 @@
             const options = {
                  margin: [0, 0, 0, 0], // Use 0 margin as positioning is absolute within the sized div
                 filename: userFilename,
-                image: { type: 'jpeg', quality: 0.99 }, // Aumentar calidad
+                image: { type: 'jpeg', quality: 1.0 }, // Máxima calidad
                 html2canvas: {
-                    scale: 4, // Aumentar escala para mejor calidad
+                    scale: 6, // Aumentar escala para mejor calidad
                     logging: false,
                     useCORS: true,
                     backgroundColor: '#ffffff', // Explicit background
