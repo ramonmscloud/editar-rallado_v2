@@ -802,8 +802,11 @@
             const pdfGridBorderWidth = Math.max(1, Math.round(0.2 * MM_TO_PX)); // At least 1px
             const pdfCellBorderWidth = Math.max(1, Math.round(0.1 * MM_TO_PX)); // At least 1px
 
-            // Create PDF grid elements using PIXELS
-            for (let r = 0; r < currentRows; r++) {
+            // Create PDF grid elements using PIXELS - limited to first 3 rows only
+            // Determine how many rows to actually render (either 3 or less if currentRows is less than 3)
+            const rowsToRender = Math.min(3, currentRows);
+            
+            for (let r = 0; r < rowsToRender; r++) {
                 for (let c = 0; c < currentCols; c++) {
                     // Calculate top-left corner in PIXELS including margin, centering offset, and fixed spacing
                     const gridX = pdfMarginPx + offsetX + c * (pdfGridSizePx + pdfSpacingPx);
@@ -899,8 +902,8 @@
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 3; // Línea gruesa para mejor visibilidad
             
-            // Dibujar líneas vectoriales para cada rejilla
-            for (let r = 0; r < currentRows; r++) {
+            // Dibujar líneas vectoriales para cada rejilla - limitado a las tres primeras filas
+            for (let r = 0; r < rowsToRender; r++) {
                 for (let c = 0; c < currentCols; c++) {
                     // Calcular posición de la rejilla
                     const gridX = pdfMarginPx + offsetX + c * (pdfGridSizePx + pdfSpacingPx);
