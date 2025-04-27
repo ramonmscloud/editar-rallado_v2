@@ -143,18 +143,19 @@
             padding: 0;
             background: white;
             box-sizing: border-box;
-            /* Dimensions set in JS */
+            /* Dimensions set in JS using pixels */
+            border: 1px solid #eee; /* Add a faint border for debugging if needed */
         }
         .pdf-render-area .grid { /* Styles for grids ONLY within the PDF area */
              position: absolute;
              box-shadow: none;
-             border: 0.2mm solid #999; /* Thinner border in mm for PDF */
+             border: 1px solid #999; /* Use pixels, adjusted in JS */
              background-color: transparent;
              box-sizing: border-box;
         }
          .pdf-render-area .cell { /* Styles for cells ONLY within the PDF area */
              position: absolute;
-             border: 0.1mm solid #ccc; /* Even thinner cell border */
+             border: 1px solid #ccc; /* Use pixels, adjusted in JS */
              background-color: transparent; /* Default background */
              box-sizing: border-box;
          }
@@ -247,6 +248,8 @@
         const PDF_MARGIN_MM = 10; // Margin for PDF content area
         const PDF_GRID_SIZE_MM = 10; // Fixed grid size (1cm) in PDF
         const MIN_GRID_SPACING_MM = 1; // Minimum spacing between grids in PDF for max calculation
+        const DPI = 96; // Assumed DPI for pixel calculations
+        const MM_TO_PX = DPI / 25.4; // Conversion factor
 
         let gridDimension = 5;   // NxN cells inside each grid
         let numGridRows = 13;    // Number of grid rows to generate
@@ -710,52 +713,60 @@
             // --- Create Temporary Structure for PDF ---
             const pdfRenderDiv = document.createElement('div');
             pdfRenderDiv.className = 'pdf-render-area'; // Styles applied via CSS
-            pdfRenderDiv.style.width = `${A4_WIDTH_MM}mm`;
-            pdfRenderDiv.style.height = `${A4_HEIGHT_MM}mm`;
-            // pdfRenderDiv.style.boxSizing = 'border-box'; // Already in CSS
 
-            const printableWidth = A4_WIDTH_MM - (2 * PDF_MARGIN_MM);
-            const printableHeight = A4_HEIGHT_MM - (2 * PDF_MARGIN_MM);
-            const pdfGridSize = PDF_GRID_SIZE_MM;
+            // Convert A4 size and margins to pixels for the temporary div
+            const a4WidthPx = Math.round(A4_WIDTH_MM * MM_TO_PX);
+            const a4HeightPx = Math.round(A4_HEIGHT_MM * MM_TO_PX);
+            const pdfMarginPx = Math.round(PDF_MARGIN_MM * MM_TO_PX);
+            const pdfGridSizePx = Math.round(PDF_GRID_SIZE_MM * MM_TO_PX);
 
-             // Calculate uniform spacing for PDF including outer margins
-             // Total space available divided by number of gaps (N+1)
-             const pdfSpacingX = currentCols > 0 ? (printableWidth - currentCols * pdfGridSize) / (currentCols + 1) : printableWidth;
-             const pdfSpacingY = currentRows > 0 ? (printableHeight - currentRows * pdfGridSize) / (currentRows + 1) : printableHeight;
+            pdfRenderDiv.style.width = `${a4WidthPx}px`;
+            pdfRenderDiv.style.height = `${a4HeightPx}px`;
 
+            const printableWidthPx = a4WidthPx - (2 * pdfMarginPx);
+            const printableHeightPx = a4HeightPx - (2 * pdfMarginPx);
 
-            console.log(`PDF Layout: Grid=${pdfGridSize}mm, SpacingX=${pdfSpacingX.toFixed(2)}mm, SpacingY=${pdfSpacingY.toFixed(2)}mm`);
+             // Calculate uniform spacing in PIXELS
+             const pdfSpacingXPx = currentCols > 0 ? (printableWidthPx - currentCols * pdfGridSizePx) / (currentCols + 1) : printableWidthPx;
+             const pdfSpacingYPx = currentRows > 0 ? (printableHeightPx - currentRows * pdfGridSizePx) / (currentRows + 1) : printableHeightPx;
 
-            // Create PDF grid elements
+            console.log(`PDF Layout (px): Grid=${pdfGridSizePx}px, SpacingX=${pdfSpacingXPx.toFixed(1)}px, SpacingY=${pdfSpacingYPx.toFixed(1)}px`);
+
+            // Adjust border thickness based on pixel size for visibility
+            const pdfGridBorderWidth = Math.max(1, Math.round(0.2 * MM_TO_PX)); // At least 1px
+            const pdfCellBorderWidth = Math.max(1, Math.round(0.1 * MM_TO_PX)); // At least 1px
+
+            // Create PDF grid elements using PIXELS
             for (let r = 0; r < currentRows; r++) {
                 for (let c = 0; c < currentCols; c++) {
-                    // Calculate top-left corner including margin and spacing
-                    const gridX = PDF_MARGIN_MM + pdfSpacingX + c * (pdfGridSize + pdfSpacingX);
-                    const gridY = PDF_MARGIN_MM + pdfSpacingY + r * (pdfGridSize + pdfSpacingY);
+                    // Calculate top-left corner in PIXELS
+                    const gridX = pdfMarginPx + pdfSpacingXPx + c * (pdfGridSizePx + pdfSpacingXPx);
+                    const gridY = pdfMarginPx + pdfSpacingYPx + r * (pdfGridSizePx + pdfSpacingYPx);
 
                     const gridDiv = document.createElement('div');
                     gridDiv.className = 'grid'; // Use class for styling in .pdf-render-area
                     gridDiv.style.position = 'absolute';
-                    gridDiv.style.left = `${gridX}mm`;
-                    gridDiv.style.top = `${gridY}mm`;
-                    gridDiv.style.width = `${pdfGridSize}mm`;
-                    gridDiv.style.height = `${pdfGridSize}mm`;
+                    gridDiv.style.left = `${gridX}px`;
+                    gridDiv.style.top = `${gridY}px`;
+                    gridDiv.style.width = `${pdfGridSizePx}px`;
+                    gridDiv.style.height = `${pdfGridSizePx}px`;
+                    gridDiv.style.borderWidth = `${pdfGridBorderWidth}px`; // Set border width in px
                     gridDiv.style.boxSizing = 'border-box';
 
-                    const cellWidthMm = pdfGridSize / currentN;
-                    const cellHeightMm = pdfGridSize / currentN;
+                    const cellWidthPx = pdfGridSizePx / currentN;
+                    const cellHeightPx = pdfGridSizePx / currentN;
 
                     for (let rCell = 0; rCell < currentN; rCell++) {
                         for (let cCell = 0; cCell < currentN; cCell++) {
                             const cell = document.createElement('div');
                             cell.className = 'cell'; // Base class for border
                             cell.style.position = 'absolute';
-                            cell.style.left = `${cCell * cellWidthMm}mm`;
-                            cell.style.top = `${rCell * cellHeightMm}mm`;
-                            cell.style.width = `${cellWidthMm}mm`;
-                            cell.style.height = `${cellHeightMm}mm`;
+                            cell.style.left = `${cCell * cellWidthPx}px`;
+                            cell.style.top = `${rCell * cellHeightPx}px`;
+                            cell.style.width = `${cellWidthPx}px`;
+                            cell.style.height = `${cellHeightPx}px`;
+                            cell.style.borderWidth = `${pdfCellBorderWidth}px`; // Set border width in px
                             cell.style.boxSizing = 'border-box';
-                            // Background color applied via classes below
 
                             // Apply coloring based on state using CLASSES
                             const startPoint = (c < firstRowStartPoints.length) ? firstRowStartPoints[c] : null;
@@ -764,7 +775,6 @@
                             } else if (r === 0) { // Path only on first row of grids
                                 const pathPoints = (paths[r] && c < paths[r].length && paths[r][c]) ? paths[r][c] : [];
                                 const isPath = pathPoints.some(p => p.row === rCell && p.col === cCell);
-                                // Add path class only if it's a path point AND not the start point
                                 if (isPath && !(startPoint && startPoint.row === rCell && startPoint.col === cCell)) {
                                      cell.classList.add('path'); // Add path class
                                 }
@@ -781,23 +791,25 @@
 
             // --- html2pdf Generation ---
             const options = {
-                margin: 0, // Margins handled by positioning
+                // margin: 0, // Margin is handled by internal positioning now
+                // Override margin to ensure it uses the div size exactly
+                 margin: [0, 0, 0, 0],
                 filename: userFilename,
                 image: { type: 'jpeg', quality: 0.97 },
                 html2canvas: {
-                    scale: 3, // Increased scale for better resolution
+                    scale: 3, // Use high scale for better quality from pixel source
                     logging: false,
                     useCORS: true,
                     backgroundColor: '#ffffff', // Explicit background
-                     // Explicitly set width/height for canvas based on target PDF size in pixels
-                     width: Math.round(A4_WIDTH_MM * (96 / 25.4)), // Approx pixels at 96 DPI
-                     height: Math.round(A4_HEIGHT_MM * (96 / 25.4)),
-                     windowWidth: Math.round(A4_WIDTH_MM * (96 / 25.4)), // Match canvas size
-                     windowHeight: Math.round(A4_HEIGHT_MM * (96 / 25.4)) // Match canvas size
+                     // Let html2canvas determine width/height from the element
+                     // width: a4WidthPx,
+                     // height: a4HeightPx,
+                     // windowWidth: a4WidthPx,
+                     // windowHeight: a4HeightPx
                 },
                 jsPDF: {
-                    unit: 'mm',
-                    format: 'a4',
+                    unit: 'mm', // Output unit is still mm
+                    format: 'a4', // Target format
                     orientation: 'portrait'
                 }
             };
@@ -806,25 +818,29 @@
             savePdfButton.disabled = true;
             savePdfButton.textContent = 'Generando...';
 
-            html2pdf().from(pdfRenderDiv).set(options).save()
-                .then(() => {
-                    console.log("PDF generated successfully:", userFilename);
-                    showStatusMessage(`PDF guardado como "${userFilename}".`, 'success');
-                })
-                .catch(err => {
-                    console.error("Error generating PDF:", err);
-                    showStatusMessage('Error al guardar PDF. Ver consola para detalles.', 'error');
-                })
-                .finally(() => {
-                     // Re-enable button and remove temp div regardless of success/failure
-                     savePdfButton.disabled = false;
-                     savePdfButton.textContent = 'Guardar como PDF';
-                     // Ensure removal from body
-                     if (document.body.contains(pdfRenderDiv)) {
-                         document.body.removeChild(pdfRenderDiv);
-                         console.log("Removed temporary PDF render div.");
-                     }
-                });
+            // Add a small delay before generating PDF
+            setTimeout(() => {
+                html2pdf().from(pdfRenderDiv).set(options).save()
+                    .then(() => {
+                        console.log("PDF generated successfully:", userFilename);
+                        showStatusMessage(`PDF guardado como "${userFilename}".`, 'success');
+                    })
+                    .catch(err => {
+                        console.error("Error generating PDF:", err);
+                        showStatusMessage('Error al guardar PDF. Ver consola para detalles.', 'error');
+                    })
+                    .finally(() => {
+                         // Re-enable button and remove temp div regardless of success/failure
+                         savePdfButton.disabled = false;
+                         savePdfButton.textContent = 'Guardar como PDF';
+                         // Ensure removal from body
+                         if (document.body.contains(pdfRenderDiv)) {
+                             document.body.removeChild(pdfRenderDiv);
+                             console.log("Removed temporary PDF render div.");
+                         }
+                    });
+            }, 100); // 100ms delay
+
         }
 
 
