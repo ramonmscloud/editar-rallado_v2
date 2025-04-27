@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edición de Muestras (A4, 1cm)</title>
+    <title>Edición de Muestras (A4, 1cm Fijo)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -190,18 +190,18 @@
 </head>
 <body>
     <div class="container">
-        <h1>Edición de Muestras (A4, 1cm)</h1>
+        <h1>Edición de Muestras (A4, 1cm Fijo)</h1>
 
         <div class="instructions">
             <h3>Instrucciones:</h3>
             <ol>
                 <li>Configura la **Dimensión (NxN)** de las celdas dentro de cada rejilla.</li>
-                <li>Define el **Número de Filas y Columnas** de rejillas que deseas generar (máximo indicado para A4).</li>
+                <li>Define el **Número de Filas y Columnas** de rejillas que deseas generar (máximo indicado para A4 con espaciado de 1cm).</li>
                 <li>Pulsa **"Aplicar Configuración"**. La rejilla (cuadrada en pantalla) se creará automáticamente.</li>
                 <li>Marca un punto de inicio (verde) haciendo clic en una celda de cualquier rejilla de la **primera fila**.</li>
                 <li>Dibuja un trazo (azul) haciendo clic y arrastrando dentro de esa misma rejilla de la primera fila.</li>
                 <li>El punto de inicio (verde) se replicará automáticamente en las rejillas inferiores.</li>
-                <li>Usa "Reiniciar Marcadores" para borrar las marcas o "Guardar como PDF" para exportar la vista a un A4 con rejillas de 1cm x 1cm (se te pedirá un nombre de archivo).</li>
+                <li>Usa "Reiniciar Marcadores" para borrar las marcas o "Guardar como PDF" para exportar la vista a un A4 con rejillas de 1cm x 1cm y **separación fija de 1cm** (se te pedirá un nombre de archivo).</li>
             </ol>
         </div>
 
@@ -252,7 +252,7 @@
         const A4_HEIGHT_MM = 297;
         const PDF_MARGIN_MM = 10; // Margin for PDF content area
         const PDF_GRID_SIZE_MM = 10; // Fixed grid size (1cm) in PDF
-        const MIN_GRID_SPACING_MM = 1; // Minimum spacing between grids in PDF for max calculation
+        const PDF_SPACING_MM = 10; // *** Fixed spacing (1cm) between grids in PDF ***
         const DPI = 96; // Assumed DPI for pixel calculations
         const MM_TO_PX = DPI / 25.4; // Conversion factor
 
@@ -329,9 +329,11 @@
             const printableWidth = A4_WIDTH_MM - (2 * PDF_MARGIN_MM);
             const printableHeight = A4_HEIGHT_MM - (2 * PDF_MARGIN_MM);
 
-            // Calculate max including minimum spacing to ensure at least MIN_GRID_SPACING_MM between grids
-            maxColsA4 = Math.floor((printableWidth + MIN_GRID_SPACING_MM) / (PDF_GRID_SIZE_MM + MIN_GRID_SPACING_MM));
-            maxRowsA4 = Math.floor((printableHeight + MIN_GRID_SPACING_MM) / (PDF_GRID_SIZE_MM + MIN_GRID_SPACING_MM));
+            // Calculate max based on fixed grid size and fixed spacing (only between grids)
+            // Formula: floor((Total Printable Space - Size of First Grid) / (Grid Size + Fixed Spacing)) + 1
+            maxColsA4 = printableWidth >= PDF_GRID_SIZE_MM ? Math.floor((printableWidth - PDF_GRID_SIZE_MM) / (PDF_GRID_SIZE_MM + PDF_SPACING_MM)) + 1 : 0;
+            maxRowsA4 = printableHeight >= PDF_GRID_SIZE_MM ? Math.floor((printableHeight - PDF_GRID_SIZE_MM) / (PDF_GRID_SIZE_MM + PDF_SPACING_MM)) + 1 : 0;
+
 
             maxColsInfo.textContent = maxColsA4;
             maxRowsInfo.textContent = maxRowsA4;
@@ -339,7 +341,7 @@
             // Set max attributes for input fields dynamically
             numRowsInput.max = maxRowsA4;
             numColsInput.max = maxColsA4;
-            console.log(`Calculated Max Grids for A4 (1cm grid, ${MIN_GRID_SPACING_MM}mm spacing): ${maxRowsA4} Rows, ${maxColsA4} Cols`);
+            console.log(`Calculated Max Grids for A4 (1cm grid, ${PDF_SPACING_MM}mm fixed spacing): ${maxRowsA4} Rows, ${maxColsA4} Cols`);
         }
 
         function applyConfiguration() {
@@ -724,6 +726,7 @@
             const a4HeightPx = Math.round(A4_HEIGHT_MM * MM_TO_PX);
             const pdfMarginPx = Math.round(PDF_MARGIN_MM * MM_TO_PX);
             const pdfGridSizePx = Math.round(PDF_GRID_SIZE_MM * MM_TO_PX);
+            const pdfSpacingPx = Math.round(PDF_SPACING_MM * MM_TO_PX); // Fixed spacing in pixels
 
             pdfRenderDiv.style.width = `${a4WidthPx}px`;
             pdfRenderDiv.style.height = `${a4HeightPx}px`;
@@ -731,11 +734,20 @@
             const printableWidthPx = a4WidthPx - (2 * pdfMarginPx);
             const printableHeightPx = a4HeightPx - (2 * pdfMarginPx);
 
-             // Calculate uniform spacing in PIXELS
-             const pdfSpacingXPx = currentCols > 0 ? (printableWidthPx - currentCols * pdfGridSizePx) / (currentCols + 1) : printableWidthPx;
-             const pdfSpacingYPx = currentRows > 0 ? (printableHeightPx - currentRows * pdfGridSizePx) / (currentRows + 1) : printableHeightPx;
+             // Calculate total width/height needed by grids and FIXED spacing (only between grids)
+             const totalGridWidthPx = currentCols * pdfGridSizePx;
+             const totalSpacingWidthPx = currentCols > 1 ? (currentCols - 1) * pdfSpacingPx : 0;
+             const totalContentWidthPx = totalGridWidthPx + totalSpacingWidthPx;
 
-            console.log(`PDF Layout (px): Grid=${pdfGridSizePx}px, SpacingX=${pdfSpacingXPx.toFixed(1)}px, SpacingY=${pdfSpacingYPx.toFixed(1)}px`);
+             const totalGridHeightPx = currentRows * pdfGridSizePx;
+             const totalSpacingHeightPx = currentRows > 1 ? (currentRows - 1) * pdfSpacingPx : 0;
+             const totalContentHeightPx = totalGridHeightPx + totalSpacingHeightPx;
+
+             // Calculate offset to center the content block within the printable area
+             const offsetX = (printableWidthPx - totalContentWidthPx) / 2;
+             const offsetY = (printableHeightPx - totalContentHeightPx) / 2;
+
+            console.log(`PDF Layout (px): Grid=${pdfGridSizePx}px, Spacing=${pdfSpacingPx}px, OffsetX=${offsetX.toFixed(1)}px, OffsetY=${offsetY.toFixed(1)}px`);
 
             // Adjust border thickness based on pixel size for visibility
             const pdfGridBorderWidth = Math.max(1, Math.round(0.2 * MM_TO_PX)); // At least 1px
@@ -744,9 +756,10 @@
             // Create PDF grid elements using PIXELS
             for (let r = 0; r < currentRows; r++) {
                 for (let c = 0; c < currentCols; c++) {
-                    // Calculate top-left corner in PIXELS
-                    const gridX = pdfMarginPx + pdfSpacingXPx + c * (pdfGridSizePx + pdfSpacingXPx);
-                    const gridY = pdfMarginPx + pdfSpacingYPx + r * (pdfGridSizePx + pdfSpacingYPx);
+                    // Calculate top-left corner in PIXELS including margin, centering offset, and fixed spacing
+                    const gridX = pdfMarginPx + offsetX + c * (pdfGridSizePx + pdfSpacingPx);
+                    const gridY = pdfMarginPx + offsetY + r * (pdfGridSizePx + pdfSpacingPx);
+
 
                     const gridDiv = document.createElement('div');
                     gridDiv.className = 'grid'; // Use class for styling in .pdf-render-area
@@ -796,9 +809,7 @@
 
             // --- html2pdf Generation ---
             const options = {
-                // margin: 0, // Margin is handled by internal positioning now
-                // Override margin to ensure it uses the div size exactly
-                 margin: [0, 0, 0, 0],
+                 margin: [0, 0, 0, 0], // Use 0 margin as positioning is absolute within the sized div
                 filename: userFilename,
                 image: { type: 'jpeg', quality: 0.97 },
                 html2canvas: {
@@ -807,7 +818,7 @@
                     useCORS: true,
                     backgroundColor: '#ffffff', // Explicit background
                      // Let html2canvas determine width/height from the element
-                     // width: a4WidthPx,
+                     // width: a4WidthPx, // Explicit width/height might interfere with scaling
                      // height: a4HeightPx,
                      // windowWidth: a4WidthPx,
                      // windowHeight: a4HeightPx
