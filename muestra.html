@@ -3,75 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edición de Muestras (A4, Espaciado Config.)</title>
+    <title>Edición de Muestras (A4, 1cm Fijo)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* General body styling */
         body {
             font-family: Arial, sans-serif;
-            max-width: 1000px; /* Max width for content */
-            margin: 0 auto; /* Center content */
+            max-width: 1000px;
+            margin: 0 auto;
             padding: 20px;
             background-color: #ffffff;
         }
 
-        /* Main container */
         .container {
             display: flex;
             flex-direction: column;
-            gap: 20px; /* Spacing between elements */
+            gap: 20px;
         }
 
-        /* --- Screen Preview Styles --- */
-        /* Container for the grid preview */
+        /* Screen Preview Styles */
         .grid-container {
             width: 100%;
-            aspect-ratio: 4 / 3; /* Maintain aspect ratio for screen preview */
+            aspect-ratio: 4 / 3; /* Adjust aspect ratio for screen preview */
             max-height: 70vh; /* Limit screen preview height */
-            margin: 0 auto; /* Center the container */
-            position: relative; /* Needed for absolute positioning of overlay */
-            border: 1px dashed #aaa; /* Visual border */
+            margin: 0 auto;
+            position: relative;
+            border: 1px dashed #aaa;
             padding: 0;
-            background-color: #f0f0f0; /* Light grey background */
-            overflow: hidden; /* Hide anything extending outside */
+            background-color: #f0f0f0;
+            overflow: hidden;
         }
-        /* Overlay to hold the grid elements */
         .grid-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: auto; /* Allow interaction with elements inside */
-            z-index: 100; /* Ensure it's above the container background */
+            pointer-events: auto;
+            z-index: 100;
         }
-        /* Style for individual grids in screen preview */
-        .grid {
-            position: absolute; /* Positioned by JS */
-            background-color: rgba(255, 255, 255, 0.1); /* Slightly transparent white */
-            box-sizing: border-box; /* Include padding and border in element's total width and height */
-            box-shadow: 0 0 2px rgba(0,0,0,0.2); /* Subtle shadow */
-            border: 1px solid rgba(200, 200, 200, 0.6); /* Light grey grid border */
-        }
-        /* Style for individual cells within a grid in screen preview */
-        .cell {
-            position: absolute; /* Positioned relative to parent grid */
-            border: 1px solid rgba(0, 0, 255, 0.3); /* Light blue cell border */
+        .grid { /* Style for grids in screen preview */
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.1);
             box-sizing: border-box;
-            cursor: pointer; /* Indicate interactivity */
-            background-color: rgba(255, 255, 255, 0.0); /* Transparent background */
-            transition: background-color 0.1s ease; /* Smooth hover effect */
+            box-shadow: 0 0 2px rgba(0,0,0,0.2);
+            border: 1px solid rgba(200, 200, 200, 0.6); /* Grid border */
+        }
+        .cell { /* Style for cells in screen preview */
+            position: absolute;
+            border: 1px solid rgba(0, 0, 255, 0.3); /* Cell border */
+            box-sizing: border-box;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.0);
+            transition: background-color 0.1s ease;
         }
         .cell:hover {
-             background-color: rgba(0, 0, 0, 0.05); /* Slightly darken on hover */
+             background-color: rgba(0, 0, 0, 0.05);
         }
-        /* Style for the starting cell in screen preview */
-        .start-point {
+        .start-point { /* Color for screen preview */
             background-color: rgba(76, 175, 80, 0.8); /* Green */
         }
-        /* Style for path cells in screen preview */
-        .path {
+        .path { /* Color for screen preview */
             background-color: rgba(33, 150, 243, 0.7); /* Blue background */
             /* Add outline for thicker appearance */
             outline: 2px solid rgba(33, 150, 243, 1); /* Solid blue outline */
@@ -80,37 +72,31 @@
         }
 
 
-        /* --- Controls and UI Elements --- */
-        /* General button styling */
+        /* Controls and UI Elements */
         button {
             padding: 10px 15px;
-            background-color: #4CAF50; /* Green */
+            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.2s ease; /* Smooth transition */
+            transition: background-color 0.2s ease;
         }
-        /* Style for disabled buttons */
         button:disabled {
-            background-color: #cccccc; /* Grey */
+            background-color: #cccccc;
             cursor: not-allowed;
         }
-        /* Hover effect for enabled buttons */
         button:hover:not(:disabled) {
-            background-color: #45a049; /* Darker green */
+            background-color: #45a049;
         }
-        /* Instructions box styling */
         .instructions {
             background-color: #f9f9f9; padding: 15px; border-radius: 4px;
             margin-bottom: 20px; border: 1px solid #eee;
         }
-        /* Specific styling for Save PDF button */
-        #savePdfButton { background-color: #FF5722; /* Orange */}
-        #savePdfButton:hover:not(:disabled) { background-color: #E64A19; /* Darker orange */ }
-        /* Removed SVG button styles */
+        #savePdfButton { background-color: #FF5722; }
+        #savePdfButton:hover:not(:disabled) { background-color: #E64A19; }
 
-        /* --- Status Messages --- */
+        /* Status Messages */
         .status-message {
             padding: 8px 12px; border-radius: 4px; margin: 8px 0;
             text-align: center; font-weight: normal; font-size: 0.9em;
@@ -120,40 +106,34 @@
         .status-error { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
         .status-info { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
 
-        /* --- Configuration Section --- */
+        /* Configuration Section */
         .config-section {
-            background-color: #f0f8ff; /* Alice blue */ padding: 15px; border-radius: 5px;
+            background-color: #f0f8ff; padding: 15px; border-radius: 5px;
             margin-bottom: 15px; display: flex; flex-direction: column;
-            gap: 15px; /* Spacing between rows */ border: 1px solid #d6eaff;
+            gap: 15px; border: 1px solid #d6eaff;
         }
-        /* Styling for each row within the config section */
         .config-row {
             display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
         }
-        .config-row label { min-width: 140px; /* Ensure labels align */ font-weight: bold; }
+        .config-row label { min-width: 120px; font-weight: bold; }
         .config-row input[type="number"] {
             width: 70px; padding: 6px 8px; border: 1px solid #ccc;
             border-radius: 4px; text-align: center;
         }
         .config-row .info { font-size: 0.85em; color: #555; margin-left: 5px; }
-        /* Quick dimension selection buttons */
         .quick-dimension-select { display: flex; gap: 5px; align-items: center; margin-left: 10px; }
         .quick-dimension-select button {
             background-color: #e0e0e0; border: 1px solid #ccc; border-radius: 3px;
             padding: 3px 8px; font-size: 0.85em; cursor: pointer; color: #333;
         }
         .quick-dimension-select button:hover { background-color: #d0d0d0; }
-        /* Button group styling */
         .button-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        /* Initial message display */
         #messageDiv {
             text-align: center; padding: 20px; background-color: #f5f5f5;
             border-radius: 8px; color: #555; font-style: italic; margin-top: 10px;
-            /* Center message vertically and horizontally if grid container is empty */
-            display: flex; align-items: center; justify-content: center; height: 100%;
         }
 
-        /* --- PDF Generation Styles (Applied to temporary hidden div) --- */
+        /* --- PDF Generation Styles --- */
         .pdf-render-area {
             /* Position fixed but invisible and non-interactive */
             position: fixed;
@@ -170,69 +150,58 @@
             /* Dimensions set in JS using pixels */
             border: 1px solid #eee; /* Add a faint border for debugging if needed */
         }
-        /* Styles for grids ONLY within the PDF area - Emphasized for visibility */
-        .pdf-render-area .grid {
+        .pdf-render-area .grid { /* Styles for grids ONLY within the PDF area */
              position: absolute;
-             box-shadow: 0 0 5px rgba(0,0,0,0.8) !important; /* Stronger shadow */
-             border: 4px solid #000000 !important; /* Thicker, black border */
-             background-color: transparent !important; /* Ensure background doesn't obscure */
-             box-sizing: border-box !important;
-             outline: 2px solid #000000 !important; /* Thick outline */
-             outline-offset: -2px !important; /* Outline inside the border */
-             -webkit-print-color-adjust: exact !important; /* Force colors/backgrounds in print/PDF */
-             color-adjust: exact !important;
+             box-shadow: none;
+             border: 1px solid #999; /* Use pixels, adjusted in JS */
+             background-color: transparent;
+             box-sizing: border-box;
         }
-         /* Styles for cells ONLY within the PDF area - Emphasized for visibility */
-         .pdf-render-area .cell {
+         .pdf-render-area .cell { /* Styles for cells ONLY within the PDF area */
              position: absolute;
-             border: 2.5px solid #000000 !important; /* Thick, black cell border */
-             background-color: transparent !important; /* Default background */
-             box-sizing: border-box !important;
-             outline: 1px solid #000000 !important; /* Visible outline */
-             outline-offset: -1px !important; /* Outline inside the border */
-             -webkit-print-color-adjust: exact !important; /* Force colors/backgrounds */
-             color-adjust: exact !important;
+             border: 1px solid #ccc; /* Use pixels, adjusted in JS */
+             background-color: transparent; /* Default background */
+             box-sizing: border-box;
          }
-         /* PDF specific colors using classes (applied by JS) */
+         /* PDF specific colors using classes */
          .pdf-render-area .start-point {
              background-color: rgba(76, 175, 80, 0.8) !important; /* Green */
          }
          .pdf-render-area .path {
              background-color: rgba(33, 150, 243, 0.7) !important; /* Blue */
+             /* Outline might not render well in PDF, rely on background */
          }
 
 
-        /* --- Responsive adjustments --- */
+        /* Responsive adjustments */
         @media (max-width: 700px) {
-             /* Stack config items vertically on smaller screens */
              .config-row { flex-direction: column; align-items: flex-start; gap: 5px; }
              .config-row label { min-width: unset; }
              .config-row .info { margin-left: 0; }
-             .quick-dimension-select { margin-left: 0; }
+            .quick-dimension-select { margin-left: 0; }
         }
         @media (max-width: 600px) {
-             /* Stack main buttons vertically */
              .button-group { flex-direction: column; align-items: stretch; }
-             h1 { font-size: 1.5em; text-align: center; }
-             .grid-container { max-height: 60vh; /* Slightly smaller preview height */ }
+            h1 { font-size: 1.5em; text-align: center; }
+            .grid-container { max-height: 60vh; }
         }
 
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Edición de Muestras (A4, Espaciado Config.)</h1>
+        <h1>Edición de Muestras (A4, 1cm Fijo)</h1>
 
         <div class="instructions">
             <h3>Instrucciones:</h3>
             <ol>
                 <li>Configura la **Dimensión (NxN)** de las celdas dentro de cada rejilla.</li>
-                <li>Define el **Número de Filas y Columnas** de rejillas que deseas generar.</li>
-                <li>Define el **Espaciado PDF (mm)** entre las rejillas para el archivo final (por defecto 10mm = 1cm).</li>
-                <li>El sistema indicará el **Máximo de Filas/Columnas** que caben en un A4 con el espaciado elegido.</li>
+                <li>Define el **Número de Filas y Columnas** de rejillas que deseas generar (máximo indicado para A4 con espaciado de 1cm).</li>
                 <li>Pulsa **"Aplicar Configuración"**. La rejilla (cuadrada en pantalla) se creará automáticamente.</li>
-                <li>Marca un punto de inicio (verde) y dibuja un trazo (azul) en la **primera fila** de rejillas.</li>
-                <li>Usa "Reiniciar Marcadores" o "Guardar como PDF".</li> {/* Updated instruction */}
+                <li>Marca un punto de inicio (verde) haciendo clic en una celda de cualquier rejilla de la **primera fila**.</li>
+                <li>Dibuja un trazo (azul) haciendo clic y arrastrando dentro de esa misma rejilla de la primera fila.</li>
+                <li>El punto de inicio (verde) se replicará automáticamente en las rejillas inferiores.</li>
+                <li>Usa "Reiniciar Marcadores" para borrar las marcas o "Guardar como PDF" para exportar la vista a un A4 con rejillas de 1cm x 1cm y **separación fija de 1cm** (se te pedirá un nombre de archivo).</li>
             </ol>
         </div>
 
@@ -259,23 +228,18 @@
                 <span class="info">(Máx A4: <span id="maxColsInfo">--</span>)</span>
             </div>
              <div class="config-row">
-                <label for="pdfSpacingInput">Espaciado PDF (mm):</label>
-                <input type="number" id="pdfSpacingInput" value="10" min="0" step="0.5">
-                 <span class="info">(Separación entre rejillas en el PDF)</span>
-            </div>
-             <div class="config-row">
                  <button id="applyConfigBtn">Aplicar Configuración</button>
              </div>
         </div>
 
+
         <div class="button-group">
-            {/* Removed SVG Button */}
             <button id="resetButton" disabled>Reiniciar Marcadores</button>
             <button id="savePdfButton" disabled>Guardar como PDF</button>
         </div>
 
         <div class="grid-container" id="gridContainer">
-             <div id="messageDiv" style="display: flex;"> Configura las dimensiones y pulsa "Aplicar Configuración".
+             <div id="messageDiv" style="display: block;"> Configura las dimensiones y pulsa "Aplicar Configuración".
              </div>
              </div>
          <div id="statusMessageContainer"></div>
@@ -286,195 +250,130 @@
         // --- Configuration & Constants ---
         const A4_WIDTH_MM = 210;
         const A4_HEIGHT_MM = 297;
-        const PDF_MARGIN_MM = 10; // Margin inside A4 for PDF content
-        const PDF_GRID_SIZE_MM = 10; // Fixed grid size (1cm x 1cm) in the PDF output
-        const DPI = 96; // Assumed screen DPI for pixel calculations (can vary)
-        const MM_TO_PX = DPI / 25.4; // Conversion factor: millimeters to pixels
+        const PDF_MARGIN_MM = 10; // Margin for PDF content area
+        const PDF_GRID_SIZE_MM = 10; // Fixed grid size (1cm) in PDF
+        const PDF_SPACING_MM = 10; // *** Fixed spacing (1cm) between grids in PDF ***
+        const DPI = 96; // Assumed DPI for pixel calculations
+        const MM_TO_PX = DPI / 25.4; // Conversion factor
 
-        // --- Global State Variables (initialized with defaults) ---
         let gridDimension = 5;   // NxN cells inside each grid
         let numGridRows = 13;    // Number of grid rows to generate
         let numGridCols = 9;     // Number of grid columns to generate
-        let pdfSpacingMm = 10;   // Spacing between grids in PDF (default 1cm)
-        let maxRowsA4 = 0;       // Calculated max rows fitting on A4
-        let maxColsA4 = 0;       // Calculated max cols fitting on A4
+        let maxRowsA4 = 0;       // Calculated max rows for A4
+        let maxColsA4 = 0;       // Calculated max cols for A4
 
         // --- Application State ---
-        let firstRowStartPoints = []; // Stores {row, col} of the start point for each grid in the first row
-        let paths = []; // 3D array: paths[gridRow][gridCol] = [{row, col}, {row, col}, ...]
-        let currentDrawingGrid = null; // Stores {row, col} of the grid being drawn on
-        let isDrawing = false; // Flag: true if mouse/touch is down and moving over cells
-        let activeGridData = []; // Stores info about grids currently displayed on screen: { element, gridRow, gridCol, x, y, width, height }
-        let gridCreated = false; // Flag: true if the screen grid has been successfully generated
+        let firstRowStartPoints = [];
+        let paths = [];
+        let currentDrawingGrid = null;
+        let isDrawing = false;
+        let activeGridData = []; // Screen grid data
+        let gridCreated = false; // Flag to track if grid is currently displayed
 
-        // --- DOM Element References ---
+        // --- DOM Elements ---
         const gridDimensionInput = document.getElementById('gridDimensionInput');
         const quickDimButtons = document.querySelectorAll('.quick-dimension-select button');
         const numRowsInput = document.getElementById('numRowsInput');
         const numColsInput = document.getElementById('numColsInput');
-        const pdfSpacingInput = document.getElementById('pdfSpacingInput');
         const maxRowsInfo = document.getElementById('maxRowsInfo');
         const maxColsInfo = document.getElementById('maxColsInfo');
         const applyConfigBtn = document.getElementById('applyConfigBtn');
         const resetButton = document.getElementById('resetButton');
         const savePdfButton = document.getElementById('savePdfButton');
-        // Removed SVG Button reference
         const gridContainerDiv = document.getElementById('gridContainer');
         const messageDiv = document.getElementById('messageDiv');
         const statusMessageContainer = document.getElementById('statusMessageContainer');
 
 
         // --- Initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM fully loaded and parsed.");
-            calculateAndDisplayMaxGrids(); // Initial calculation based on default spacing
-            resetState(); // Initialize state variables
-            setupEventListeners(); // Attach all event listeners
+        calculateAndDisplayMaxGrids();
+        resetState(); // Initialize state variables
+
+
+        // --- Event Listeners ---
+        applyConfigBtn.addEventListener('click', applyConfiguration);
+        quickDimButtons.forEach(button => {
+            button.addEventListener('click', handleQuickDimensionSelect);
         });
-
-        // --- Setup Event Listeners ---
-        function setupEventListeners() {
-            applyConfigBtn.addEventListener('click', applyConfiguration);
-            quickDimButtons.forEach(button => {
-                button.addEventListener('click', handleQuickDimensionSelect);
-            });
-            resetButton.addEventListener('click', handleReset);
-            savePdfButton.addEventListener('click', handleSavePdf);
-            // Removed SVG Listener
-            window.addEventListener('resize', handleResize); // Adjust overlay on resize
-
-            // Recalculate max grids dynamically if spacing changes
-            pdfSpacingInput.addEventListener('change', calculateAndDisplayMaxGrids);
-            pdfSpacingInput.addEventListener('input', calculateAndDisplayMaxGrids); // Update while typing
-
-            // Global listeners for ending draw action (mouseup/touchend anywhere)
-            document.addEventListener('mouseup', handleMouseUp);
-            document.addEventListener('touchend', handleTouchEnd);
-
-            console.log("Event listeners attached.");
-        }
-
+        resetButton.addEventListener('click', handleReset);
+        savePdfButton.addEventListener('click', handleSavePdf);
+        window.addEventListener('resize', handleResize); // Adjust overlay on resize
 
         // --- State Management ---
         function resetState() {
-            // Keep last valid config values in inputs, but reset drawing state
+            // Keep last valid config values, but reset drawing state
             firstRowStartPoints = Array(numGridCols).fill(null);
             paths = Array(numGridRows).fill().map(() => Array(numGridCols).fill().map(() => []));
             currentDrawingGrid = null;
             isDrawing = false;
-            clearGridOverlay(); // Clear the visual grid and associated state
+            activeGridData = [];
+            gridCreated = false; // Reset grid created flag
+            clearGridOverlay();
             hideStatusMessage();
-            messageDiv.style.display = 'flex'; // Show initial message (use flex for centering)
-            resetButton.disabled = true; // Disable action buttons
+            messageDiv.style.display = 'block'; // Show initial message
+            resetButton.disabled = true; // Disable buttons
             savePdfButton.disabled = true;
-            // Removed SVG button disable
-            console.log(`State reset. Grid Dim: ${gridDimension}x${gridDimension}, Grid Layout: ${numGridRows}x${numGridCols}, PDF Spacing: ${pdfSpacingMm}mm`);
+            console.log(`State reset. Grid Dim: ${gridDimension}x${gridDimension}, Grid Layout: ${numGridRows}x${numGridCols}`);
         }
 
-        // Update state arrays (start points, paths) based on current row/col count
+        // Update state arrays based on current row/col count
         function updateStateArrays() {
-            // Preserve existing data if possible, otherwise reset
-            const newPaths = Array(numGridRows).fill().map((_, r) =>
-                Array(numGridCols).fill().map((__, c) =>
-                    (paths[r] && paths[r][c]) ? paths[r][c] : [] // Keep old path if grid exists, else empty
-                )
-            );
-            paths = newPaths;
-
-            const newStartPoints = Array(numGridCols).fill(null).map((_, c) =>
-                (c < firstRowStartPoints.length && firstRowStartPoints[c]) ? firstRowStartPoints[c] : null // Keep old start point if exists
-            );
-            firstRowStartPoints = newStartPoints;
-
-            console.log(`State arrays resized/updated for ${numGridRows}x${numGridCols} layout.`);
+            firstRowStartPoints = Array(numGridCols).fill(null);
+            paths = Array(numGridRows).fill().map(() => Array(numGridCols).fill().map(() => []));
+            console.log(`State arrays resized for ${numGridRows}x${numGridCols} layout.`);
         }
 
         // --- Configuration & Validation ---
 
-        // Calculates the maximum number of grids that fit on an A4 page
-        // based on fixed grid size (1cm), margins, and the *currently selected* PDF spacing.
         function calculateAndDisplayMaxGrids() {
-            const currentPdfSpacingMm = parseFloat(pdfSpacingInput.value) || 0;
-            if (currentPdfSpacingMm < 0) {
-                maxRowsInfo.textContent = "N/A";
-                maxColsInfo.textContent = "N/A";
-                numRowsInput.max = null; // Remove max constraint if spacing invalid
-                numColsInput.max = null;
-                return;
-            }
-
-            // Calculate printable area in mm
             const printableWidth = A4_WIDTH_MM - (2 * PDF_MARGIN_MM);
             const printableHeight = A4_HEIGHT_MM - (2 * PDF_MARGIN_MM);
 
-            // Calculate max columns/rows based on fixed grid size and CURRENT spacing
-            maxColsA4 = printableWidth >= PDF_GRID_SIZE_MM
-                ? Math.floor((printableWidth - PDF_GRID_SIZE_MM) / (PDF_GRID_SIZE_MM + currentPdfSpacingMm)) + 1
-                : 0;
-            maxRowsA4 = printableHeight >= PDF_GRID_SIZE_MM
-                ? Math.floor((printableHeight - PDF_GRID_SIZE_MM) / (PDF_GRID_SIZE_MM + currentPdfSpacingMm)) + 1
-                : 0;
+            // Calculate max based on fixed grid size and fixed spacing (only between grids)
+            // Formula: floor((Total Printable Space - Size of First Grid) / (Grid Size + Fixed Spacing)) + 1
+            maxColsA4 = printableWidth >= PDF_GRID_SIZE_MM ? Math.floor((printableWidth - PDF_GRID_SIZE_MM) / (PDF_GRID_SIZE_MM + PDF_SPACING_MM)) + 1 : 0;
+            maxRowsA4 = printableHeight >= PDF_GRID_SIZE_MM ? Math.floor((printableHeight - PDF_GRID_SIZE_MM) / (PDF_GRID_SIZE_MM + PDF_SPACING_MM)) + 1 : 0;
 
-            // Ensure calculated max is not negative
-            maxColsA4 = Math.max(0, maxColsA4);
-            maxRowsA4 = Math.max(0, maxRowsA4);
 
-            // Display the calculated maximums
             maxColsInfo.textContent = maxColsA4;
             maxRowsInfo.textContent = maxRowsA4;
 
-            // Set max attributes for input fields dynamically to guide user
-            numRowsInput.max = maxRowsA4 > 0 ? maxRowsA4 : 1;
-            numColsInput.max = maxColsA4 > 0 ? maxColsA4 : 1;
-
-            console.log(`Calculated Max Grids for A4 (1cm grid, ${currentPdfSpacingMm}mm spacing): ${maxRowsA4} Rows, ${maxColsA4} Cols`);
+            // Set max attributes for input fields dynamically
+            numRowsInput.max = maxRowsA4;
+            numColsInput.max = maxColsA4;
+            console.log(`Calculated Max Grids for A4 (1cm grid, ${PDF_SPACING_MM}mm fixed spacing): ${maxRowsA4} Rows, ${maxColsA4} Cols`);
         }
 
-        // Reads configuration from inputs, validates, updates state, and creates the screen grid.
         function applyConfiguration() {
-            console.log("Apply Configuration button clicked.");
             const newDimension = parseInt(gridDimensionInput.value);
             const newRows = parseInt(numRowsInput.value);
             const newCols = parseInt(numColsInput.value);
-            const newPdfSpacing = parseFloat(pdfSpacingInput.value);
             let configValid = true;
-            let validationMessages = [];
 
-            // --- Validation ---
+            // Validate Dimension
             if (isNaN(newDimension) || newDimension < 2 || newDimension > 50) {
-                validationMessages.push('Dimensión (NxN) debe ser entre 2 y 50.');
-                gridDimensionInput.value = gridDimension; // Revert input
-                configValid = false;
-            }
-            if (isNaN(newPdfSpacing) || newPdfSpacing < 0) {
-                validationMessages.push('Espaciado PDF debe ser 0 o mayor.');
-                pdfSpacingInput.value = pdfSpacingMm; // Revert input
+                showStatusMessage('Error: Dimensión (NxN) debe ser entre 2 y 50.', 'error');
+                gridDimensionInput.value = gridDimension; // Revert
                 configValid = false;
             }
 
-            // Ensure max values are up-to-date based on potentially changed spacing *before* validating rows/cols
-            calculateAndDisplayMaxGrids();
-
-            // Validate Rows against the *current* maximum allowed by spacing
-            if (isNaN(newRows) || newRows < 1 || (maxRowsA4 > 0 && newRows > maxRowsA4)) {
-                validationMessages.push(`Nº Filas debe ser entre 1 y ${maxRowsA4 > 0 ? maxRowsA4 : 'N/A'}.`);
-                numRowsInput.value = numGridRows; // Revert input
+            // Validate Rows/Cols against calculated maximums
+            if (isNaN(newRows) || newRows < 1 || newRows > maxRowsA4) {
+                showStatusMessage(`Error: Nº Filas debe ser entre 1 y ${maxRowsA4}.`, 'error');
+                numRowsInput.value = numGridRows; // Revert
                 configValid = false;
             }
-            // Validate Cols against the *current* maximum allowed by spacing
-            if (isNaN(newCols) || newCols < 1 || (maxColsA4 > 0 && newCols > maxColsA4)) {
-                validationMessages.push(`Nº Columnas debe ser entre 1 y ${maxColsA4 > 0 ? maxColsA4 : 'N/A'}.`);
-                numColsInput.value = numGridCols; // Revert input
+            if (isNaN(newCols) || newCols < 1 || newCols > maxColsA4) {
+                showStatusMessage(`Error: Nº Columnas debe ser entre 1 y ${maxColsA4}.`, 'error');
+                numColsInput.value = numGridCols; // Revert
                 configValid = false;
             }
 
-            // Show combined error messages if any validation failed
             if (!configValid) {
-                showStatusMessage(`Error de configuración: ${validationMessages.join(' ')}`, 'error');
                 return; // Stop if any validation failed
             }
 
-            // --- Update State if Changed ---
+            // Update state if changed
             let configChanged = false;
             if (newDimension !== gridDimension) {
                 gridDimension = newDimension;
@@ -484,51 +383,43 @@
              if (newRows !== numGridRows || newCols !== numGridCols) {
                  numGridRows = newRows;
                  numGridCols = newCols;
-                 updateStateArrays(); // Resize/update state arrays for new layout
+                 updateStateArrays(); // Resize state arrays for new layout
                  configChanged = true;
                  console.log(`Grid layout changed to: ${numGridRows} Rows x ${numGridCols} Columns`);
              }
-             if (newPdfSpacing !== pdfSpacingMm) {
-                 pdfSpacingMm = newPdfSpacing;
-                 configChanged = true;
-                 console.log(`PDF spacing changed to: ${pdfSpacingMm}mm`);
-             }
 
-            // --- Create or Update Screen Grid ---
-            messageDiv.style.display = 'none'; // Hide initial message
-            showStatusMessage(`Aplicando (${gridDimension}x${gridDimension}, ${numGridRows}x${numGridCols}, ${pdfSpacingMm}mm PDF espacio)...`, 'info');
-
+            // --- Create or Update Grid ---
+            messageDiv.style.display = 'none'; // Hide initial message now
+            showStatusMessage(`Aplicando (${gridDimension}x${gridDimension}, ${numGridRows}x${numGridCols})...`, 'info');
             createManualGridOverlay(); // Create/Recreate the visual grid
 
-            // Enable/disable buttons based on successful grid creation
-            const actionButtonsDisabled = !gridCreated;
-            resetButton.disabled = actionButtonsDisabled;
-            savePdfButton.disabled = actionButtonsDisabled;
-            // Removed SVG button enable/disable
-
-            if (gridCreated && configChanged) {
-                showStatusMessage('Configuración aplicada. Previsualización actualizada.', 'success');
-            } else if (gridCreated && !configChanged) {
-                showStatusMessage('Previsualización regenerada con la misma configuración.', 'success');
-            } else if (!gridCreated) {
-                 messageDiv.style.display = 'flex'; // Show message div again if grid failed
-                 messageDiv.textContent = 'Error al crear la rejilla. Revisa la configuración o el tamaño de la ventana.';
+            // Enable buttons only if grid creation was successful
+            if (gridCreated) {
+                resetButton.disabled = false;
+                savePdfButton.disabled = false;
+                if (!configChanged) {
+                    // Provide feedback even if config didn't change but grid was recreated
+                    showStatusMessage('Configuración aplicada. Previsualización actualizada.', 'success');
+                }
+            } else {
+                 // Keep buttons disabled if creation failed
+                 resetButton.disabled = true;
+                 savePdfButton.disabled = true;
             }
         }
 
-        // Handles clicks on the quick dimension preset buttons.
+
         function handleQuickDimensionSelect(e) {
             const dimension = parseInt(e.target.dataset.dim);
             gridDimensionInput.value = dimension;
+            // Don't auto-apply, wait for the main button
         }
 
 
         // --- Grid Creation (Screen Preview) ---
-
-        // Creates or recreates the interactive grid overlay in the preview container.
         function createManualGridOverlay() {
             console.log("Creating/Updating SCREEN grid overlay.");
-            gridCreated = false; // Assume failure until success
+            gridCreated = false; // Reset flag before attempting creation
 
             const overlay = getOrCreateGridOverlay(); // Clears previous content
             activeGridData = []; // Clear previous screen grid data
@@ -538,23 +429,23 @@
             const containerHeight = containerRect.height;
 
             // Check container dimensions are valid
-             if (containerWidth <= 1 || containerHeight <= 1) { // Use 1px threshold
-                 console.error("Grid container has zero or near-zero width or height.", containerRect);
-                 showStatusMessage('Error: Área de previsualización demasiado pequeña.', 'error');
-                 clearGridOverlay(); // Ensure overlay is removed
-                 messageDiv.style.display = 'flex';
-                 messageDiv.textContent = 'Error: El área de visualización no tiene tamaño suficiente.';
+             if (containerWidth <= 0 || containerHeight <= 0) {
+                 console.error("Grid container has zero width or height.", containerRect);
+                 showStatusMessage('Error: No se puede dibujar la rejilla en el contenedor.', 'error');
+                 clearGridOverlay(); // Ensure overlay is removed if it exists
+                 messageDiv.style.display = 'block'; // Show initial message again
+                 messageDiv.textContent = 'Error: El área de visualización no tiene tamaño.';
                  return; // Stop creation
              }
 
-            // Use fixed spacing for screen layout (independent of PDF spacing)
-            const screenGridSpacing = 5; // Fixed px spacing between grids on screen
+            // Use fixed spacing for screen layout
+            const screenGridSpacing = 5; // Fixed px spacing for screen
 
-            // Calculate total space needed for spacing between/around grids
+            // Calculate total space needed for spacing
             const totalHorizontalSpacing = (numGridCols + 1) * screenGridSpacing;
             const totalVerticalSpacing = (numGridRows + 1) * screenGridSpacing;
 
-            // Calculate space available purely for the grids themselves
+            // Calculate space available purely for the grids
             const availableWidthForGrids = containerWidth - totalHorizontalSpacing;
             const availableHeightForGrids = containerHeight - totalVerticalSpacing;
 
@@ -562,86 +453,78 @@
             const maxGridWidth = numGridCols > 0 ? availableWidthForGrids / numGridCols : 0;
             const maxGridHeight = numGridRows > 0 ? availableHeightForGrids / numGridRows : 0;
 
-            // Ensure grids are square by taking the minimum dimension, floor to integer pixels
+
+            // Ensure grids are square by taking the minimum dimension
             const screenGridSize = Math.floor(Math.min(maxGridWidth, maxGridHeight));
 
             // Validate calculated grid size
             if (screenGridSize <= 0) {
                  console.error(`Screen grid size calculated as zero or negative (${screenGridSize}). Container: ${containerWidth}x${containerHeight}, Rows: ${numGridRows}, Cols: ${numGridCols}`);
-                 showStatusMessage('Error: Contenedor demasiado pequeño para esta configuración de rejillas.', 'error');
+                 showStatusMessage('Error: Contenedor de previsualización demasiado pequeño para esta configuración.', 'error');
                  clearGridOverlay();
-                 messageDiv.style.display = 'flex';
-                 messageDiv.textContent = 'Error: No caben las rejillas en el área de visualización. Reduce el número de filas/columnas o aumenta el tamaño de la ventana.';
+                 messageDiv.style.display = 'block';
+                 messageDiv.textContent = 'Error: No caben las rejillas en el área de visualización.';
                  return; // Stop creation
              }
 
-             // Calculate total space actually used by grids and spacing to center the block
+             // Calculate total space used by grids and spacing to center the block
              const totalUsedWidth = (numGridCols * screenGridSize) + totalHorizontalSpacing;
              const totalUsedHeight = (numGridRows * screenGridSize) + totalVerticalSpacing;
-             const offsetX = (containerWidth - totalUsedWidth) / 2; // Horizontal offset for centering
-             const offsetY = (containerHeight - totalUsedHeight) / 2; // Vertical offset for centering
+             const offsetX = (containerWidth - totalUsedWidth) / 2;
+             const offsetY = (containerHeight - totalUsedHeight) / 2;
 
             console.log(`Screen Grid Calculation: Size=${screenGridSize}px, Offset=${offsetX.toFixed(1)}px, ${offsetY.toFixed(1)}px`);
 
-            // --- Create Grid and Cell Elements ---
+            // --- Create Grid Elements ---
             try {
-                const fragment = document.createDocumentFragment(); // Use fragment for performance
                 for (let r = 0; r < numGridRows; r++) {
                     for (let c = 0; c < numGridCols; c++) {
                         // Calculate position for each grid including offset and spacing
                         const gridX = offsetX + screenGridSpacing + c * (screenGridSize + screenGridSpacing);
                         const gridY = offsetY + screenGridSpacing + r * (screenGridSize + screenGridSpacing);
 
-                        const gridDiv = createGridElement(r, c, gridX, gridY, screenGridSize); // Pass size
-                        if (gridDiv) {
-                            fragment.appendChild(gridDiv);
-                            // Store data about the created grid for later use (e.g., updates)
-                            activeGridData.push({ element: gridDiv, gridRow: r, gridCol: c, x: gridX, y: gridY, width: screenGridSize, height: screenGridSize });
-                        }
+                        const gridDiv = createGridElement(r, c, gridX, gridY, screenGridSize, screenGridSize); // Use square size
+                        overlay.appendChild(gridDiv);
+                        activeGridData.push({ element: gridDiv, gridRow: r, gridCol: c, x: gridX, y: gridY, width: screenGridSize, height: screenGridSize });
                     }
                 }
-                overlay.appendChild(fragment); // Append all grids at once
                 gridCreated = true; // Set flag on successful creation
-                updateGridMarkers(); // Apply any existing start points/paths to the new grid
+                showStatusMessage(`Previsualización de rejilla creada (${numGridRows}x${numGridCols}).`, 'success');
+                updateGridMarkers(); // Update markers after creation/recreation
             } catch (error) {
                  console.error("Error creating grid elements:", error);
-                 showStatusMessage('Error fatal al dibujar la rejilla.', 'error');
-                 clearGridOverlay(); // Clean up partial grid
-                 messageDiv.style.display = 'flex';
+                 showStatusMessage('Error al dibujar la rejilla.', 'error');
+                 clearGridOverlay(); // Clean up partial grid if error occurred
+                 messageDiv.style.display = 'block';
                  messageDiv.textContent = 'Error al dibujar la rejilla.';
                  gridCreated = false; // Ensure flag is false on error
             }
         }
 
-        // Creates a single grid element with its internal cells.
-        function createGridElement(gridRow, gridCol, x, y, size) {
+        function createGridElement(gridRow, gridCol, x, y, width, height) {
             const gridDiv = document.createElement('div');
             gridDiv.className = 'grid';
-            gridDiv.dataset.row = gridRow; // Store grid row/col in data attributes
+            gridDiv.dataset.row = gridRow;
             gridDiv.dataset.col = gridCol;
             gridDiv.style.position = 'absolute';
             gridDiv.style.left = `${x}px`;
             gridDiv.style.top = `${y}px`;
-            gridDiv.style.width = `${size}px`;
-            gridDiv.style.height = `${size}px`;
+            gridDiv.style.width = `${width}px`;
+            gridDiv.style.height = `${height}px`;
 
-            // Calculate cell dimensions
-            const cellWidth = size / gridDimension;
-            const cellHeight = size / gridDimension;
+            const cellWidth = width / gridDimension;
+            const cellHeight = height / gridDimension;
 
-             // Basic check for valid cell dimensions
              if (cellWidth <= 0 || cellHeight <= 0) {
-                 console.warn(`Invalid screen cell dimensions (<=0) for grid [${gridRow}, ${gridCol}]. Skipping cell creation.`);
-                 return gridDiv; // Return grid without cells if dimensions are invalid
+                 console.warn(`Invalid screen cell dimensions for grid [${gridRow}, ${gridCol}]`);
+                 return gridDiv; // Return grid without cells
              }
 
-            // Create cells within the grid
-            const cellFragment = document.createDocumentFragment();
             for (let rCell = 0; rCell < gridDimension; rCell++) {
                 for (let cCell = 0; cCell < gridDimension; cCell++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
-                    cell.dataset.row = rCell; // Store cell row/col within the grid
+                    cell.dataset.row = rCell;
                     cell.dataset.col = cCell;
                     cell.style.position = 'absolute';
                     cell.style.left = `${cCell * cellWidth}px`;
@@ -649,42 +532,42 @@
                     cell.style.width = `${cellWidth}px`;
                     cell.style.height = `${cellHeight}px`;
 
-                    // Add drawing listeners ONLY to cells in the *first row of grids*
                     if (gridRow === 0) {
                         cell.addEventListener('mousedown', handleMouseDown);
                         cell.addEventListener('mousemove', handleMouseMove);
                         cell.addEventListener('touchstart', handleTouchStart, { passive: false });
                         cell.addEventListener('touchmove', handleTouchMove, { passive: false });
                     }
-                    cellFragment.appendChild(cell);
+                    gridDiv.appendChild(cell);
                 }
             }
-            gridDiv.appendChild(cellFragment);
+             // Add global listeners for mouseup/touchend
+             document.addEventListener('mouseup', handleMouseUp);
+             document.addEventListener('touchend', handleTouchEnd);
 
             return gridDiv;
         }
 
-        // Gets the grid overlay element, creating it if it doesn't exist. Clears its content.
         function getOrCreateGridOverlay() {
             let overlay = gridContainerDiv.querySelector('.grid-overlay');
             if (!overlay) {
                 overlay = document.createElement('div');
                 overlay.className = 'grid-overlay';
+                // Apply necessary styles if not fully covered by CSS
                 overlay.style.position = 'absolute';
                 overlay.style.top = '0';
                 overlay.style.left = '0';
                 overlay.style.width = '100%';
                 overlay.style.height = '100%';
-                overlay.style.pointerEvents = 'auto'; // Enable interactions within
+                overlay.style.pointerEvents = 'auto';
                 overlay.style.zIndex = '100';
                 gridContainerDiv.appendChild(overlay);
-                console.log("Created grid overlay element.");
+                console.log("Created grid overlay.");
             }
             overlay.innerHTML = ''; // Clear previous screen grids before adding new ones
             return overlay;
         }
 
-        // Removes the grid overlay and resets associated state.
         function clearGridOverlay() {
             const overlay = gridContainerDiv.querySelector('.grid-overlay');
             if (overlay) {
@@ -693,11 +576,11 @@
             }
              activeGridData = []; // Clear screen grid data
              gridCreated = false; // Mark grid as not created
+             resetButton.disabled = true; // Disable buttons when overlay cleared
+             savePdfButton.disabled = true;
         }
 
         // --- Drawing Event Handlers (Mouse & Touch) ---
-
-        // Common logic for starting a drawing action (mousedown or touchstart).
         function handleInteractionStart(targetCell) {
              if (!gridCreated || !targetCell || !targetCell.classList.contains('cell')) return;
              const gridDiv = targetCell.closest('.grid');
@@ -707,180 +590,143 @@
              const cellRow = parseInt(targetCell.dataset.row);
              const cellCol = parseInt(targetCell.dataset.col);
 
-             if (gridRow === 0) {
+             if (gridRow === 0) { // Only allow drawing in the first row of *grids*
                  isDrawing = true;
                  currentDrawingGrid = { row: gridRow, col: gridCol };
+                 // Ensure state arrays are correctly sized before accessing
+                 if (gridCol >= firstRowStartPoints.length) firstRowStartPoints.length = gridCol + 1; // Expand if needed
                  firstRowStartPoints[gridCol] = { row: cellRow, col: cellCol };
-                 if (!paths[gridRow]) paths[gridRow] = Array(numGridCols).fill().map(() => []);
-                 if (!paths[gridRow][gridCol]) paths[gridRow][gridCol] = [];
-                 paths[gridRow][gridCol] = [{ row: cellRow, col: cellCol }];
-                 console.log(`Drawing started in Grid[${gridRow}, ${gridCol}] at Cell[${cellRow}, ${cellCol}]`);
-                 updateGridMarkers();
+
+                 if (!paths[gridRow]) paths[gridRow] = []; // Ensure row array exists
+                 if (gridCol >= paths[gridRow].length) paths[gridRow].length = gridCol + 1; // Expand if needed
+                 if (!paths[gridRow][gridCol]) paths[gridRow][gridCol] = []; // Ensure col array exists
+                 paths[gridRow][gridCol] = [{ row: cellRow, col: cellCol }]; // Start new path
+
+                 updateGridMarkers(); // Update screen markers
              }
         }
 
-        // Common logic for continuing a drawing action (mousemove or touchmove).
         function handleInteractionMove(targetCell) {
              if (!isDrawing || !gridCreated || !targetCell || !targetCell.classList.contains('cell')) return;
              const gridDiv = targetCell.closest('.grid');
-             if (!gridDiv || !currentDrawingGrid) return;
+              if (!gridDiv || !currentDrawingGrid) return;
              const gridRow = parseInt(gridDiv.dataset.row);
              const gridCol = parseInt(gridDiv.dataset.col);
              const cellRow = parseInt(targetCell.dataset.row);
              const cellCol = parseInt(targetCell.dataset.col);
 
+             // Continue drawing only if in the same grid where started
              if (gridRow === currentDrawingGrid.row && gridCol === currentDrawingGrid.col) {
-                 if (!paths[gridRow] || !paths[gridRow][gridCol]) return;
+                 // Ensure path array exists and is large enough
+                 if (!paths[gridRow] || gridCol >= paths[gridRow].length || !paths[gridRow][gridCol]) return;
                  const currentPath = paths[gridRow][gridCol];
-                 const lastPoint = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
+                 const lastPoint = currentPath[currentPath.length - 1];
+                 // Add cell if different from last and within bounds
                  if (!lastPoint || lastPoint.row !== cellRow || lastPoint.col !== cellCol) {
-                     if (cellRow >= 0 && cellRow < gridDimension && cellCol >= 0 && cellCol < gridDimension) {
+                     if (cellRow < gridDimension && cellCol < gridDimension) {
                          currentPath.push({ row: cellRow, col: cellCol });
-                         updateGridMarkers();
+                         updateGridMarkers(); // Update screen markers
                      }
                  }
              }
         }
 
-        // Common logic for ending a drawing action (mouseup or touchend).
         function handleInteractionEnd() {
-            if (isDrawing) {
-                console.log("Drawing ended.");
-                isDrawing = false;
-                currentDrawingGrid = null;
-            }
+            if (isDrawing) { isDrawing = false; currentDrawingGrid = null; }
         }
 
-        // --- Specific Event Wrappers ---
         function handleMouseDown(e) { handleInteractionStart(e.target); }
-        function handleMouseMove(e) {
-            if (e.buttons !== 1) {
-                if (isDrawing) handleInteractionEnd();
-                return;
-            }
-            handleInteractionMove(e.target);
-        }
-        function handleMouseUp() { handleInteractionEnd(); } // Global listener
-
-        function handleTouchStart(e) {
-            e.preventDefault();
-            if (e.touches.length > 0) {
-                const touch = e.touches[0];
-                const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
-                handleInteractionStart(targetElement);
-            }
-        }
-        function handleTouchMove(e) {
-            e.preventDefault();
-            if (e.touches.length > 0) {
-                const touch = e.touches[0];
-                const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
-                handleInteractionMove(targetElement);
-            }
-        }
-        function handleTouchEnd() { handleInteractionEnd(); } // Global listener
+        function handleMouseMove(e) { if (e.buttons !== 1) { if (isDrawing) handleInteractionEnd(); return; } handleInteractionMove(e.target); }
+        function handleMouseUp() { handleInteractionEnd(); }
+        function handleTouchStart(e) { e.preventDefault(); if (e.touches.length > 0) { const touch = e.touches[0]; const targetElement = document.elementFromPoint(touch.clientX, touch.clientY); handleInteractionStart(targetElement); } }
+        function handleTouchMove(e) { e.preventDefault(); if (e.touches.length > 0) { const touch = e.touches[0]; const targetElement = document.elementFromPoint(touch.clientX, touch.clientY); handleInteractionMove(targetElement); } }
+        function handleTouchEnd() { handleInteractionEnd(); }
 
         // --- Visual Update (Screen) ---
-
-        // Updates the visual appearance (start point, path) of cells on the screen grid.
         function updateGridMarkers() {
-            if (!gridCreated || !activeGridData || activeGridData.length === 0) return;
-
-            activeGridData.forEach(gridInfo => {
+            if (!gridCreated) return; // Don't try to update if grid doesn't exist
+            activeGridData.forEach(gridInfo => { // Iterate screen grid data
                 const gridElement = gridInfo.element;
                 if (!gridElement) return;
                 const gridRow = gridInfo.gridRow;
                 const gridCol = gridInfo.gridCol;
-                const cells = gridElement.querySelectorAll('.cell');
-                if (!cells || cells.length === 0) return;
 
-                cells.forEach(cell => {
+                gridElement.querySelectorAll('.cell').forEach(cell => {
                     cell.classList.remove('start-point', 'path');
                 });
 
-                if (gridRow === 0 && gridCol < firstRowStartPoints.length) {
+                // Ensure firstRowStartPoints array is large enough
+                if (gridCol < firstRowStartPoints.length) {
                     const startPoint = firstRowStartPoints[gridCol];
                     if (startPoint && startPoint.row < gridDimension && startPoint.col < gridDimension) {
                         const startCell = gridElement.querySelector(`.cell[data-row="${startPoint.row}"][data-col="${startPoint.col}"]`);
-                        if (startCell) {
-                            startCell.classList.add('start-point');
-                        }
+                        if (startCell) startCell.classList.add('start-point');
                     }
                 }
 
-                if (gridRow === 0 && paths[gridRow] && gridCol < paths[gridRow].length) {
-                    const pathPoints = paths[gridRow][gridCol] || [];
-                    pathPoints.forEach(point => {
-                         if (point.row >= 0 && point.row < gridDimension && point.col >= 0 && point.col < gridDimension) {
-                            const pathCell = gridElement.querySelector(`.cell[data-row="${point.row}"][data-col="${point.col}"]`);
-                            if (pathCell && !pathCell.classList.contains('start-point')) {
-                                pathCell.classList.add('path');
-                            }
-                         }
-                    });
+                if (gridRow === 0) { // Path only on first row
+                    // Ensure paths array is large enough
+                    if (paths[gridRow] && gridCol < paths[gridRow].length) {
+                        const pathPoints = paths[gridRow][gridCol] ? paths[gridRow][gridCol] : [];
+                        pathPoints.forEach(point => {
+                             if (point.row < gridDimension && point.col < gridDimension) {
+                                const pathCell = gridElement.querySelector(`.cell[data-row="${point.row}"][data-col="${point.col}"]`);
+                                // Only add 'path' class if it's not the start point
+                                if (pathCell && !pathCell.classList.contains('start-point')) {
+                                    pathCell.classList.add('path');
+                                }
+                             }
+                        });
+                    }
                 }
             });
         }
 
         // --- UI Control Handlers ---
-
-        // Handles the "Reiniciar Marcadores" button click.
         function handleReset() {
             console.log("Reset button clicked.");
-            if (!gridCreated) {
-                showStatusMessage("No hay rejilla para reiniciar.", "warning");
-                return;
-            }
+            if (!gridCreated) return; // Don't reset if no grid exists
+
+            // Reset only drawing state
             firstRowStartPoints = Array(numGridCols).fill(null);
-            if (paths.length > 0) {
-                 paths[0] = Array(numGridCols).fill().map(() => []);
-            }
+            paths = Array(numGridRows).fill().map(() => Array(numGridCols).fill().map(() => []));
             isDrawing = false;
             currentDrawingGrid = null;
-            updateGridMarkers();
-            showStatusMessage('Marcadores reiniciados solo en la primera fila.', 'success');
+            updateGridMarkers(); // Update screen
+            showStatusMessage('Marcadores reiniciados.', 'success');
         }
 
         // --- PDF Generation ---
-
-        // Handles the "Guardar como PDF" button click.
         function handleSavePdf() {
             console.log("Save PDF button clicked.");
              if (!gridCreated) {
-                showStatusMessage('Error: Aplica una configuración para crear la rejilla primero.', 'error');
+                alert('Por favor, aplica una configuración primero para crear la rejilla.');
                 return;
             }
 
             const currentRows = numGridRows;
             const currentCols = numGridCols;
             const currentN = gridDimension;
-            const currentPdfSpacingMm = pdfSpacingMm;
 
-            const defaultFilename = `rejillas_${currentN}x${currentN}_${currentRows}x${currentCols}_${currentPdfSpacingMm}mm.pdf`;
+            const defaultFilename = `rejillas_${currentN}x${currentN}_${currentRows}x${currentCols}.pdf`;
             let userFilename = prompt("Introduce el nombre para guardar el archivo PDF:", defaultFilename);
 
-            if (userFilename === null) {
-                console.log("PDF save cancelled by user.");
-                showStatusMessage('Guardado cancelado.', 'warning');
-                return;
-            }
-            userFilename = userFilename.trim() || defaultFilename;
-            if (!userFilename.toLowerCase().endsWith('.pdf')) {
-                userFilename += '.pdf';
-            }
+            if (userFilename === null) { console.log("PDF save cancelled."); showStatusMessage('Guardado cancelado.', 'warning'); return; }
+            if (userFilename.trim() === "") { userFilename = defaultFilename; }
+            if (!userFilename.toLowerCase().endsWith('.pdf')) { userFilename += '.pdf'; }
 
             showStatusMessage('Generando PDF (puede tardar unos segundos)...', 'info');
-            savePdfButton.disabled = true;
-            savePdfButton.textContent = 'Generando...';
 
+            // --- Create Temporary Structure for PDF ---
             const pdfRenderDiv = document.createElement('div');
-            pdfRenderDiv.className = 'pdf-render-area';
+            pdfRenderDiv.className = 'pdf-render-area'; // Styles applied via CSS
 
+            // Convert A4 size and margins to pixels for the temporary div
             const a4WidthPx = Math.round(A4_WIDTH_MM * MM_TO_PX);
             const a4HeightPx = Math.round(A4_HEIGHT_MM * MM_TO_PX);
             const pdfMarginPx = Math.round(PDF_MARGIN_MM * MM_TO_PX);
             const pdfGridSizePx = Math.round(PDF_GRID_SIZE_MM * MM_TO_PX);
-            const pdfSpacingPx = Math.round(currentPdfSpacingMm * MM_TO_PX);
+            const pdfSpacingPx = Math.round(PDF_SPACING_MM * MM_TO_PX); // Fixed spacing in pixels
 
             pdfRenderDiv.style.width = `${a4WidthPx}px`;
             pdfRenderDiv.style.height = `${a4HeightPx}px`;
@@ -888,6 +734,7 @@
             const printableWidthPx = a4WidthPx - (2 * pdfMarginPx);
             const printableHeightPx = a4HeightPx - (2 * pdfMarginPx);
 
+             // Calculate total width/height needed by grids and FIXED spacing (only between grids)
              const totalGridWidthPx = currentCols * pdfGridSizePx;
              const totalSpacingWidthPx = currentCols > 1 ? (currentCols - 1) * pdfSpacingPx : 0;
              const totalContentWidthPx = totalGridWidthPx + totalSpacingWidthPx;
@@ -896,94 +743,98 @@
              const totalSpacingHeightPx = currentRows > 1 ? (currentRows - 1) * pdfSpacingPx : 0;
              const totalContentHeightPx = totalGridHeightPx + totalSpacingHeightPx;
 
-             const offsetX = Math.max(0, (printableWidthPx - totalContentWidthPx) / 2);
-             const offsetY = Math.max(0, (printableHeightPx - totalContentHeightPx) / 2);
+             // Calculate offset to center the content block within the printable area
+             const offsetX = (printableWidthPx - totalContentWidthPx) / 2;
+             const offsetY = (printableHeightPx - totalContentHeightPx) / 2;
 
-            console.log(`PDF Layout (px): A4=${a4WidthPx}x${a4HeightPx}, Margin=${pdfMarginPx}, Grid=${pdfGridSizePx}, Spacing=${pdfSpacingPx}, Offset=${offsetX.toFixed(1)},${offsetY.toFixed(1)}`);
+            console.log(`PDF Layout (px): Grid=${pdfGridSizePx}px, Spacing=${pdfSpacingPx}px, OffsetX=${offsetX.toFixed(1)}px, OffsetY=${offsetY.toFixed(1)}px`);
 
-            const pdfFragment = document.createDocumentFragment();
+            // Adjust border thickness based on pixel size for visibility
+            const pdfGridBorderWidth = Math.max(1, Math.round(0.2 * MM_TO_PX)); // At least 1px
+            const pdfCellBorderWidth = Math.max(1, Math.round(0.1 * MM_TO_PX)); // At least 1px
+
+            // Create PDF grid elements using PIXELS
             for (let r = 0; r < currentRows; r++) {
                 for (let c = 0; c < currentCols; c++) {
+                    // Calculate top-left corner in PIXELS including margin, centering offset, and fixed spacing
                     const gridX = pdfMarginPx + offsetX + c * (pdfGridSizePx + pdfSpacingPx);
                     const gridY = pdfMarginPx + offsetY + r * (pdfGridSizePx + pdfSpacingPx);
 
+
                     const gridDiv = document.createElement('div');
-                    gridDiv.className = 'grid';
+                    gridDiv.className = 'grid'; // Use class for styling in .pdf-render-area
                     gridDiv.style.position = 'absolute';
                     gridDiv.style.left = `${gridX}px`;
                     gridDiv.style.top = `${gridY}px`;
                     gridDiv.style.width = `${pdfGridSizePx}px`;
                     gridDiv.style.height = `${pdfGridSizePx}px`;
-                    gridDiv.style.backgroundColor = 'transparent';
-                    gridDiv.style.border = '';
-                    gridDiv.style.outline = '';
+                    gridDiv.style.borderWidth = `${pdfGridBorderWidth}px`; // Set border width in px
+                    gridDiv.style.boxSizing = 'border-box';
 
                     const cellWidthPx = pdfGridSizePx / currentN;
                     const cellHeightPx = pdfGridSizePx / currentN;
 
-                    if (cellWidthPx > 0.1 && cellHeightPx > 0.1) {
-                        const cellFragment = document.createDocumentFragment();
-                        for (let rCell = 0; rCell < currentN; rCell++) {
-                            for (let cCell = 0; cCell < currentN; cCell++) {
-                                const cell = document.createElement('div');
-                                cell.className = 'cell';
-                                cell.style.position = 'absolute';
-                                cell.style.left = `${cCell * cellWidthPx}px`;
-                                cell.style.top = `${rCell * cellHeightPx}px`;
-                                cell.style.width = `${cellWidthPx}px`;
-                                cell.style.height = `${cellHeightPx}px`;
-                                cell.style.backgroundColor = 'transparent';
-                                cell.style.border = '';
-                                cell.style.outline = '';
+                    for (let rCell = 0; rCell < currentN; rCell++) {
+                        for (let cCell = 0; cCell < currentN; cCell++) {
+                            const cell = document.createElement('div');
+                            cell.className = 'cell'; // Base class for border
+                            cell.style.position = 'absolute';
+                            cell.style.left = `${cCell * cellWidthPx}px`;
+                            cell.style.top = `${rCell * cellHeightPx}px`;
+                            cell.style.width = `${cellWidthPx}px`;
+                            cell.style.height = `${cellHeightPx}px`;
+                            cell.style.borderWidth = `${pdfCellBorderWidth}px`; // Set border width in px
+                            cell.style.boxSizing = 'border-box';
 
-                                const startPoint = (r === 0 && c < firstRowStartPoints.length) ? firstRowStartPoints[c] : null;
-                                if (startPoint && startPoint.row === rCell && startPoint.col === cCell) {
-                                    cell.classList.add('start-point');
-                                } else if (r === 0) {
-                                    const pathPoints = (paths[r] && c < paths[r].length && paths[r][c]) ? paths[r][c] : [];
-                                    const isPath = pathPoints.some(p => p.row === rCell && p.col === cCell);
-                                    if (isPath && !(startPoint && startPoint.row === rCell && startPoint.col === cCell)) {
-                                         cell.classList.add('path');
-                                    }
+                            // Apply coloring based on state using CLASSES
+                            const startPoint = (c < firstRowStartPoints.length) ? firstRowStartPoints[c] : null;
+                            if (startPoint && startPoint.row === rCell && startPoint.col === cCell) {
+                                cell.classList.add('start-point'); // Add start-point class
+                            } else if (r === 0) { // Path only on first row of grids
+                                const pathPoints = (paths[r] && c < paths[r].length && paths[r][c]) ? paths[r][c] : [];
+                                const isPath = pathPoints.some(p => p.row === rCell && p.col === cCell);
+                                if (isPath && !(startPoint && startPoint.row === rCell && startPoint.col === cCell)) {
+                                     cell.classList.add('path'); // Add path class
                                 }
-                                cellFragment.appendChild(cell);
                             }
+                            gridDiv.appendChild(cell);
                         }
-                        gridDiv.appendChild(cellFragment);
-                    } else {
-                         console.warn(`Skipping cells for PDF grid [${r}, ${c}] due to small calculated size: ${cellWidthPx.toFixed(2)}x${cellHeightPx.toFixed(2)}px`);
                     }
-                    pdfFragment.appendChild(gridDiv);
+                    pdfRenderDiv.appendChild(gridDiv);
                 }
             }
-            pdfRenderDiv.appendChild(pdfFragment);
 
+            // Add to DOM *before* calling html2pdf
             document.body.appendChild(pdfRenderDiv);
 
+            // --- html2pdf Generation ---
             const options = {
-                margin: [0, 0, 0, 0],
+                 margin: [0, 0, 0, 0], // Use 0 margin as positioning is absolute within the sized div
                 filename: userFilename,
-                image: { type: 'jpeg', quality: 0.98 },
+                image: { type: 'jpeg', quality: 0.97 },
                 html2canvas: {
-                    scale: 4,
+                    scale: 3, // Use high scale for better quality from pixel source
                     logging: false,
                     useCORS: true,
-                    backgroundColor: '#ffffff',
-                    width: a4WidthPx,
-                    height: a4HeightPx,
-                    windowWidth: a4WidthPx,
-                    windowHeight: a4HeightPx,
-                     onclone: (clonedDoc) => {
-                         console.log("Cloned document created for PDF rendering.");
-                     }
+                    backgroundColor: '#ffffff', // Explicit background
+                     // Let html2canvas determine width/height from the element
+                     // width: a4WidthPx, // Explicit width/height might interfere with scaling
+                     // height: a4HeightPx,
+                     // windowWidth: a4WidthPx,
+                     // windowHeight: a4HeightPx
                 },
                 jsPDF: {
-                    unit: 'mm',
-                    format: 'a4',
+                    unit: 'mm', // Output unit is still mm
+                    format: 'a4', // Target format
                     orientation: 'portrait'
                 }
             };
 
+            // Disable button while generating
+            savePdfButton.disabled = true;
+            savePdfButton.textContent = 'Generando...';
+
+            // Add a small delay before generating PDF
             setTimeout(() => {
                 html2pdf().from(pdfRenderDiv).set(options).save()
                     .then(() => {
@@ -992,56 +843,57 @@
                     })
                     .catch(err => {
                         console.error("Error generating PDF:", err);
-                        showStatusMessage('Error al guardar PDF. Revisa la consola para detalles.', 'error');
+                        showStatusMessage('Error al guardar PDF. Ver consola para detalles.', 'error');
                     })
                     .finally(() => {
+                         // Re-enable button and remove temp div regardless of success/failure
                          savePdfButton.disabled = false;
                          savePdfButton.textContent = 'Guardar como PDF';
+                         // Ensure removal from body
                          if (document.body.contains(pdfRenderDiv)) {
                              document.body.removeChild(pdfRenderDiv);
                              console.log("Removed temporary PDF render div.");
-                         } else {
-                             console.warn("Could not find pdfRenderDiv in body to remove.");
                          }
                     });
-            }, 150);
+            }, 100); // 100ms delay
 
         }
 
-        // --- SVG Generation Removed ---
-        // function saveAsSvg() { ... } // Entire function removed
 
-        // --- Window Resize Handling ---
         function handleResize() {
-            clearTimeout(window.resizeTimeout);
-            window.resizeTimeout = setTimeout(() => {
-                console.log("Window resize detected, recreating screen grid.");
-                if (gridCreated) {
-                    createManualGridOverlay();
-                }
-            }, 250);
+            console.log("Window resized.");
+             if (gridCreated) { // Only recreate if grid exists
+                 console.log("Recreating screen grid overlay due to resize.");
+                 clearTimeout(window.resizeTimeout);
+                 window.resizeTimeout = setTimeout(() => {
+                     createManualGridOverlay(); // Recreate screen grid
+                 }, 250);
+             }
         }
 
         // --- User Feedback ---
         function showStatusMessage(message, type = 'info') {
-            hideStatusMessage();
+            hideStatusMessage(); // Clear previous message
             const messageElement = document.createElement('div');
             messageElement.className = `status-message status-${type}`;
             messageElement.textContent = message;
-            messageElement.id = 'dynamicStatusMessage';
+            messageElement.id = 'dynamicStatusMessage'; // Use ID to find it later
             statusMessageContainer.appendChild(messageElement);
+            // Make non-error messages auto-hide
             if (type !== 'error') {
-                 window.statusTimeout = setTimeout(hideStatusMessage, 5000);
+                 setTimeout(hideStatusMessage, 5000); // Hide after 5 seconds
             }
         }
 
         function hideStatusMessage() {
-             clearTimeout(window.statusTimeout);
              const existingMessage = document.getElementById('dynamicStatusMessage');
              if (existingMessage) {
                  existingMessage.remove();
              }
         }
+
+        // --- Initial Calculation ---
+        calculateAndDisplayMaxGrids(); // Calculate and show max values on load
 
     </script>
 </body>
