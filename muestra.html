@@ -7,50 +7,56 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        /* General body styling */
         body {
             font-family: Arial, sans-serif;
-            max-width: 1000px;
-            margin: 0 auto;
+            max-width: 1000px; /* Max width for content */
+            margin: 0 auto; /* Center content */
             padding: 20px;
             background-color: #ffffff;
         }
 
+        /* Main container */
         .container {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 20px; /* Spacing between elements */
         }
 
-        /* Screen Preview Styles */
+        /* --- Screen Preview Styles --- */
+        /* Container for the grid preview */
         .grid-container {
             width: 100%;
-            aspect-ratio: 4 / 3; /* Adjust aspect ratio for screen preview */
+            aspect-ratio: 4 / 3; /* Maintain aspect ratio for screen preview */
             max-height: 70vh; /* Limit screen preview height */
-            margin: 0 auto;
-            position: relative;
-            border: 1px dashed #aaa;
+            margin: 0 auto; /* Center the container */
+            position: relative; /* Needed for absolute positioning of overlay */
+            border: 1px dashed #aaa; /* Visual border */
             padding: 0;
-            background-color: #f0f0f0;
-            overflow: hidden;
+            background-color: #f0f0f0; /* Light grey background */
+            overflow: hidden; /* Hide anything extending outside */
         }
+        /* Overlay to hold the grid elements */
         .grid-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: auto;
-            z-index: 100;
+            pointer-events: auto; /* Allow interaction with elements inside */
+            z-index: 100; /* Ensure it's above the container background */
         }
-        .grid { /* Style for grids in screen preview */
-            position: absolute;
-            background-color: rgba(255, 255, 255, 0.1);
-            box-sizing: border-box;
-            box-shadow: 0 0 2px rgba(0,0,0,0.2);
+        /* Style for individual grids in screen preview */
+        .grid {
+            position: absolute; /* Moved from JS */
+            background-color: rgba(255, 255, 255, 0.1); /* Slightly transparent white */
+            box-sizing: border-box; /* Include padding and border in element's total width and height */
+            box-shadow: 0 0 2px rgba(0,0,0,0.2); /* Subtle shadow */
             border: 1px solid rgba(200, 200, 200, 0.6); /* Grid border */
         }
-        .cell { /* Style for cells in screen preview */
-            position: absolute;
+        /* Style for individual cells within a grid in screen preview */
+        .cell {
+            position: absolute; /* Moved from JS */
             border: 1px solid rgba(0, 0, 255, 0.3); /* Cell border */
             box-sizing: border-box;
             cursor: pointer;
@@ -60,19 +66,20 @@
         .cell:hover {
              background-color: rgba(0, 0, 0, 0.05);
         }
-        .start-point { /* Color for screen preview */
+        /* Style for the starting cell in screen preview */
+        .start-point {
             background-color: rgba(76, 175, 80, 0.8); /* Green */
         }
-        .path { /* Color for screen preview */
+        /* Style for path cells in screen preview */
+        .path {
             background-color: rgba(33, 150, 243, 0.7); /* Blue background */
-            /* Add outline for thicker appearance */
             outline: 2px solid rgba(33, 150, 243, 1); /* Solid blue outline */
             outline-offset: -2px; /* Draw outline inside the border */
             z-index: 5; /* Ensure outline is drawn above other cells if needed */
         }
 
 
-        /* Controls and UI Elements */
+        /* --- Controls and UI Elements --- */
         button {
             padding: 10px 15px;
             background-color: #4CAF50;
@@ -131,6 +138,8 @@
         #messageDiv {
             text-align: center; padding: 20px; background-color: #f5f5f5;
             border-radius: 8px; color: #555; font-style: italic; margin-top: 10px;
+             /* Center message vertically and horizontally if grid container is empty */
+            display: flex; align-items: center; justify-content: center; height: 100%;
         }
 
         /* --- PDF Generation Styles --- */
@@ -151,14 +160,14 @@
             border: 1px solid #eee; /* Add a faint border for debugging if needed */
         }
         .pdf-render-area .grid { /* Styles for grids ONLY within the PDF area */
-             position: absolute;
+             position: absolute; /* Moved from JS */
              box-shadow: none;
              border: 1px solid #999; /* Use pixels, adjusted in JS */
              background-color: transparent;
              box-sizing: border-box;
         }
          .pdf-render-area .cell { /* Styles for cells ONLY within the PDF area */
-             position: absolute;
+             position: absolute; /* Moved from JS */
              border: 1px solid #ccc; /* Use pixels, adjusted in JS */
              background-color: transparent; /* Default background */
              box-sizing: border-box;
@@ -239,7 +248,7 @@
         </div>
 
         <div class="grid-container" id="gridContainer">
-             <div id="messageDiv" style="display: block;"> Configura las dimensiones y pulsa "Aplicar Configuración".
+             <div id="messageDiv" style="display: flex;"> Configura las dimensiones y pulsa "Aplicar Configuración".
              </div>
              </div>
          <div id="statusMessageContainer"></div>
@@ -286,18 +295,31 @@
 
 
         // --- Initialization ---
-        calculateAndDisplayMaxGrids();
-        resetState(); // Initialize state variables
-
-
-        // --- Event Listeners ---
-        applyConfigBtn.addEventListener('click', applyConfiguration);
-        quickDimButtons.forEach(button => {
-            button.addEventListener('click', handleQuickDimensionSelect);
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM fully loaded and parsed.");
+            calculateAndDisplayMaxGrids(); // Initial calculation based on default spacing
+            resetState(); // Initialize state variables
+            setupEventListeners(); // Attach all event listeners
         });
-        resetButton.addEventListener('click', handleReset);
-        savePdfButton.addEventListener('click', handleSavePdf);
-        window.addEventListener('resize', handleResize); // Adjust overlay on resize
+
+
+        // --- Setup Event Listeners ---
+        function setupEventListeners() {
+            applyConfigBtn.addEventListener('click', applyConfiguration);
+            quickDimButtons.forEach(button => {
+                button.addEventListener('click', handleQuickDimensionSelect);
+            });
+            resetButton.addEventListener('click', handleReset);
+            savePdfButton.addEventListener('click', handleSavePdf);
+            window.addEventListener('resize', handleResize); // Adjust overlay on resize
+
+             // Global listeners for ending draw action (mouseup/touchend anywhere)
+            document.addEventListener('mouseup', handleMouseUp);
+            document.addEventListener('touchend', handleTouchEnd);
+
+            console.log("Event listeners attached.");
+        }
+
 
         // --- State Management ---
         function resetState() {
@@ -306,21 +328,31 @@
             paths = Array(numGridRows).fill().map(() => Array(numGridCols).fill().map(() => []));
             currentDrawingGrid = null;
             isDrawing = false;
-            activeGridData = [];
-            gridCreated = false; // Reset grid created flag
-            clearGridOverlay();
+            // activeGridData = []; // Don't clear activeGridData here, clearGridOverlay handles it
+            // gridCreated = false; // Don't reset gridCreated here, clearGridOverlay handles it
+            clearGridOverlay(); // Clear the visual grid and associated state
             hideStatusMessage();
-            messageDiv.style.display = 'block'; // Show initial message
-            resetButton.disabled = true; // Disable buttons
+            messageDiv.style.display = 'flex'; // Show initial message (use flex for centering)
+            resetButton.disabled = true; // Disable action buttons
             savePdfButton.disabled = true;
             console.log(`State reset. Grid Dim: ${gridDimension}x${gridDimension}, Grid Layout: ${numGridRows}x${numGridCols}`);
         }
 
         // Update state arrays based on current row/col count
         function updateStateArrays() {
-            firstRowStartPoints = Array(numGridCols).fill(null);
-            paths = Array(numGridRows).fill().map(() => Array(numGridCols).fill().map(() => []));
-            console.log(`State arrays resized for ${numGridRows}x${numGridCols} layout.`);
+             // Preserve existing data if possible, otherwise reset
+            const newPaths = Array(numGridRows).fill().map((_, r) =>
+                Array(numGridCols).fill().map((__, c) =>
+                    (paths[r] && paths[r][c]) ? paths[r][c] : [] // Keep old path if grid exists, else empty
+                )
+            );
+            paths = newPaths;
+
+            const newStartPoints = Array(numGridCols).fill(null).map((_, c) =>
+                (c < firstRowStartPoints.length && firstRowStartPoints[c]) ? firstRowStartPoints[c] : null // Keep old start point if exists
+            );
+            firstRowStartPoints = newStartPoints;
+            console.log(`State arrays resized/updated for ${numGridRows}x${numGridCols} layout.`);
         }
 
         // --- Configuration & Validation ---
@@ -330,17 +362,19 @@
             const printableHeight = A4_HEIGHT_MM - (2 * PDF_MARGIN_MM);
 
             // Calculate max based on fixed grid size and fixed spacing (only between grids)
-            // Formula: floor((Total Printable Space - Size of First Grid) / (Grid Size + Fixed Spacing)) + 1
             maxColsA4 = printableWidth >= PDF_GRID_SIZE_MM ? Math.floor((printableWidth - PDF_GRID_SIZE_MM) / (PDF_GRID_SIZE_MM + PDF_SPACING_MM)) + 1 : 0;
             maxRowsA4 = printableHeight >= PDF_GRID_SIZE_MM ? Math.floor((printableHeight - PDF_GRID_SIZE_MM) / (PDF_GRID_SIZE_MM + PDF_SPACING_MM)) + 1 : 0;
 
+             // Ensure calculated max is not negative
+            maxColsA4 = Math.max(0, maxColsA4);
+            maxRowsA4 = Math.max(0, maxRowsA4);
 
             maxColsInfo.textContent = maxColsA4;
             maxRowsInfo.textContent = maxRowsA4;
 
             // Set max attributes for input fields dynamically
-            numRowsInput.max = maxRowsA4;
-            numColsInput.max = maxColsA4;
+            numRowsInput.max = maxRowsA4 > 0 ? maxRowsA4 : 1;
+            numColsInput.max = maxColsA4 > 0 ? maxColsA4 : 1;
             console.log(`Calculated Max Grids for A4 (1cm grid, ${PDF_SPACING_MM}mm fixed spacing): ${maxRowsA4} Rows, ${maxColsA4} Cols`);
         }
 
@@ -349,27 +383,30 @@
             const newRows = parseInt(numRowsInput.value);
             const newCols = parseInt(numColsInput.value);
             let configValid = true;
+            let validationMessages = [];
 
-            // Validate Dimension
+             // --- Validation ---
             if (isNaN(newDimension) || newDimension < 2 || newDimension > 50) {
-                showStatusMessage('Error: Dimensión (NxN) debe ser entre 2 y 50.', 'error');
-                gridDimensionInput.value = gridDimension; // Revert
+                validationMessages.push('Dimensión (NxN) debe ser entre 2 y 50.');
+                gridDimensionInput.value = gridDimension; // Revert input
                 configValid = false;
             }
 
-            // Validate Rows/Cols against calculated maximums
-            if (isNaN(newRows) || newRows < 1 || newRows > maxRowsA4) {
-                showStatusMessage(`Error: Nº Filas debe ser entre 1 y ${maxRowsA4}.`, 'error');
-                numRowsInput.value = numGridRows; // Revert
+            // Validate Rows/Cols against calculated maximums (which are fixed now)
+            if (isNaN(newRows) || newRows < 1 || (maxRowsA4 > 0 && newRows > maxRowsA4)) {
+                validationMessages.push(`Nº Filas debe ser entre 1 y ${maxRowsA4 > 0 ? maxRowsA4 : 'N/A'}.`);
+                numRowsInput.value = numGridRows; // Revert input
                 configValid = false;
             }
-            if (isNaN(newCols) || newCols < 1 || newCols > maxColsA4) {
-                showStatusMessage(`Error: Nº Columnas debe ser entre 1 y ${maxColsA4}.`, 'error');
-                numColsInput.value = numGridCols; // Revert
+            if (isNaN(newCols) || newCols < 1 || (maxColsA4 > 0 && newCols > maxColsA4)) {
+                validationMessages.push(`Nº Columnas debe ser entre 1 y ${maxColsA4 > 0 ? maxColsA4 : 'N/A'}.`);
+                numColsInput.value = numGridCols; // Revert input
                 configValid = false;
             }
+
 
             if (!configValid) {
+                 showStatusMessage(`Error de configuración: ${validationMessages.join(' ')}`, 'error');
                 return; // Stop if any validation failed
             }
 
@@ -394,17 +431,17 @@
             createManualGridOverlay(); // Create/Recreate the visual grid
 
             // Enable buttons only if grid creation was successful
-            if (gridCreated) {
-                resetButton.disabled = false;
-                savePdfButton.disabled = false;
-                if (!configChanged) {
-                    // Provide feedback even if config didn't change but grid was recreated
-                    showStatusMessage('Configuración aplicada. Previsualización actualizada.', 'success');
-                }
-            } else {
-                 // Keep buttons disabled if creation failed
-                 resetButton.disabled = true;
-                 savePdfButton.disabled = true;
+             const actionButtonsDisabled = !gridCreated;
+            resetButton.disabled = actionButtonsDisabled;
+            savePdfButton.disabled = actionButtonsDisabled;
+
+            if (gridCreated && configChanged) {
+                showStatusMessage('Configuración aplicada. Previsualización actualizada.', 'success');
+            } else if (gridCreated && !configChanged) {
+                showStatusMessage('Previsualización regenerada con la misma configuración.', 'success');
+            } else if (!gridCreated) {
+                 messageDiv.style.display = 'flex'; // Show message div again if grid failed
+                 messageDiv.textContent = 'Error al crear la rejilla. Revisa la configuración o el tamaño de la ventana.';
             }
         }
 
@@ -429,12 +466,12 @@
             const containerHeight = containerRect.height;
 
             // Check container dimensions are valid
-             if (containerWidth <= 0 || containerHeight <= 0) {
-                 console.error("Grid container has zero width or height.", containerRect);
-                 showStatusMessage('Error: No se puede dibujar la rejilla en el contenedor.', 'error');
-                 clearGridOverlay(); // Ensure overlay is removed if it exists
-                 messageDiv.style.display = 'block'; // Show initial message again
-                 messageDiv.textContent = 'Error: El área de visualización no tiene tamaño.';
+             if (containerWidth <= 1 || containerHeight <= 1) {
+                 console.error("Grid container has zero or near-zero width or height.", containerRect);
+                 showStatusMessage('Error: Área de previsualización demasiado pequeña.', 'error');
+                 clearGridOverlay(); // Ensure overlay is removed
+                 messageDiv.style.display = 'flex';
+                 messageDiv.textContent = 'Error: El área de visualización no tiene tamaño suficiente.';
                  return; // Stop creation
              }
 
@@ -460,10 +497,10 @@
             // Validate calculated grid size
             if (screenGridSize <= 0) {
                  console.error(`Screen grid size calculated as zero or negative (${screenGridSize}). Container: ${containerWidth}x${containerHeight}, Rows: ${numGridRows}, Cols: ${numGridCols}`);
-                 showStatusMessage('Error: Contenedor de previsualización demasiado pequeño para esta configuración.', 'error');
+                 showStatusMessage('Error: Contenedor demasiado pequeño para esta configuración de rejillas.', 'error');
                  clearGridOverlay();
-                 messageDiv.style.display = 'block';
-                 messageDiv.textContent = 'Error: No caben las rejillas en el área de visualización.';
+                 messageDiv.style.display = 'flex';
+                 messageDiv.textContent = 'Error: No caben las rejillas en el área de visualización. Reduce el número de filas/columnas o aumenta el tamaño de la ventana.';
                  return; // Stop creation
              }
 
@@ -477,73 +514,79 @@
 
             // --- Create Grid Elements ---
             try {
+                const fragment = document.createDocumentFragment(); // Use fragment for performance
                 for (let r = 0; r < numGridRows; r++) {
                     for (let c = 0; c < numGridCols; c++) {
                         // Calculate position for each grid including offset and spacing
                         const gridX = offsetX + screenGridSpacing + c * (screenGridSize + screenGridSpacing);
                         const gridY = offsetY + screenGridSpacing + r * (screenGridSize + screenGridSpacing);
 
-                        const gridDiv = createGridElement(r, c, gridX, gridY, screenGridSize, screenGridSize); // Use square size
-                        overlay.appendChild(gridDiv);
-                        activeGridData.push({ element: gridDiv, gridRow: r, gridCol: c, x: gridX, y: gridY, width: screenGridSize, height: screenGridSize });
+                        const gridDiv = createGridElement(r, c, gridX, gridY, screenGridSize); // Pass size
+                         if (gridDiv) {
+                            fragment.appendChild(gridDiv);
+                            // Store data about the created grid for later use (e.g., updates)
+                            activeGridData.push({ element: gridDiv, gridRow: r, gridCol: c, x: gridX, y: gridY, width: screenGridSize, height: screenGridSize });
+                        }
                     }
                 }
+                 overlay.appendChild(fragment); // Append all grids at once
                 gridCreated = true; // Set flag on successful creation
-                showStatusMessage(`Previsualización de rejilla creada (${numGridRows}x${numGridCols}).`, 'success');
-                updateGridMarkers(); // Update markers after creation/recreation
+                // showStatusMessage(`Previsualización de rejilla creada (${numGridRows}x${numGridCols}).`, 'success'); // Moved to applyConfiguration
+                updateGridMarkers(); // Apply any existing start points/paths to the new grid
             } catch (error) {
                  console.error("Error creating grid elements:", error);
-                 showStatusMessage('Error al dibujar la rejilla.', 'error');
-                 clearGridOverlay(); // Clean up partial grid if error occurred
-                 messageDiv.style.display = 'block';
+                 showStatusMessage('Error fatal al dibujar la rejilla.', 'error');
+                 clearGridOverlay(); // Clean up partial grid
+                 messageDiv.style.display = 'flex';
                  messageDiv.textContent = 'Error al dibujar la rejilla.';
                  gridCreated = false; // Ensure flag is false on error
             }
         }
 
-        function createGridElement(gridRow, gridCol, x, y, width, height) {
+        // Creates a single grid element with its internal cells.
+        function createGridElement(gridRow, gridCol, x, y, size) {
             const gridDiv = document.createElement('div');
             gridDiv.className = 'grid';
             gridDiv.dataset.row = gridRow;
             gridDiv.dataset.col = gridCol;
-            gridDiv.style.position = 'absolute';
+            // gridDiv.style.position = 'absolute'; // Position is now set in CSS
             gridDiv.style.left = `${x}px`;
             gridDiv.style.top = `${y}px`;
-            gridDiv.style.width = `${width}px`;
-            gridDiv.style.height = `${height}px`;
+            gridDiv.style.width = `${size}px`;
+            gridDiv.style.height = `${size}px`;
 
-            const cellWidth = width / gridDimension;
-            const cellHeight = height / gridDimension;
+            const cellWidth = size / gridDimension;
+            const cellHeight = size / gridDimension;
 
-             if (cellWidth <= 0 || cellHeight <= 0) {
-                 console.warn(`Invalid screen cell dimensions for grid [${gridRow}, ${gridCol}]`);
+             if (cellWidth <= 0.1 || cellHeight <= 0.1) { // Use a small threshold
+                 console.warn(`Invalid screen cell dimensions for grid [${gridRow}, ${gridCol}]. Skipping cell creation.`);
                  return gridDiv; // Return grid without cells
              }
 
+            const cellFragment = document.createDocumentFragment();
             for (let rCell = 0; rCell < gridDimension; rCell++) {
                 for (let cCell = 0; cCell < gridDimension; cCell++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
                     cell.dataset.row = rCell;
                     cell.dataset.col = cCell;
-                    cell.style.position = 'absolute';
+                    // cell.style.position = 'absolute'; // Position is now set in CSS
                     cell.style.left = `${cCell * cellWidth}px`;
                     cell.style.top = `${rCell * cellHeight}px`;
                     cell.style.width = `${cellWidth}px`;
                     cell.style.height = `${cellHeight}px`;
 
+                    // Add drawing listeners ONLY to cells in the *first row of grids*
                     if (gridRow === 0) {
                         cell.addEventListener('mousedown', handleMouseDown);
                         cell.addEventListener('mousemove', handleMouseMove);
                         cell.addEventListener('touchstart', handleTouchStart, { passive: false });
                         cell.addEventListener('touchmove', handleTouchMove, { passive: false });
                     }
-                    gridDiv.appendChild(cell);
+                    cellFragment.appendChild(cell);
                 }
             }
-             // Add global listeners for mouseup/touchend
-             document.addEventListener('mouseup', handleMouseUp);
-             document.addEventListener('touchend', handleTouchEnd);
+            gridDiv.appendChild(cellFragment);
 
             return gridDiv;
         }
@@ -553,16 +596,16 @@
             if (!overlay) {
                 overlay = document.createElement('div');
                 overlay.className = 'grid-overlay';
-                // Apply necessary styles if not fully covered by CSS
+                // Styles are mostly handled by CSS, but ensure position/size are set
                 overlay.style.position = 'absolute';
                 overlay.style.top = '0';
                 overlay.style.left = '0';
                 overlay.style.width = '100%';
                 overlay.style.height = '100%';
-                overlay.style.pointerEvents = 'auto';
+                overlay.style.pointerEvents = 'auto'; // Enable interactions within
                 overlay.style.zIndex = '100';
                 gridContainerDiv.appendChild(overlay);
-                console.log("Created grid overlay.");
+                console.log("Created grid overlay element.");
             }
             overlay.innerHTML = ''; // Clear previous screen grids before adding new ones
             return overlay;
@@ -595,13 +638,14 @@
                  currentDrawingGrid = { row: gridRow, col: gridCol };
                  // Ensure state arrays are correctly sized before accessing
                  if (gridCol >= firstRowStartPoints.length) firstRowStartPoints.length = gridCol + 1; // Expand if needed
-                 firstRowStartPoints[gridCol] = { row: cellRow, col: cellCol };
+                 firstRowStartPoints[gridCol] = { row: cellRow, col: cellCol }; // Set new start point
 
-                 if (!paths[gridRow]) paths[gridRow] = []; // Ensure row array exists
-                 if (gridCol >= paths[gridRow].length) paths[gridRow].length = gridCol + 1; // Expand if needed
-                 if (!paths[gridRow][gridCol]) paths[gridRow][gridCol] = []; // Ensure col array exists
+                 // Ensure path array structure exists
+                 if (!paths[gridRow]) paths[gridRow] = Array(numGridCols).fill().map(() => []);
+                 if (!paths[gridRow][gridCol]) paths[gridRow][gridCol] = [];
                  paths[gridRow][gridCol] = [{ row: cellRow, col: cellCol }]; // Start new path
 
+                 console.log(`Drawing started in Grid[${gridRow}, ${gridCol}] at Cell[${cellRow}, ${cellCol}]`);
                  updateGridMarkers(); // Update screen markers
              }
         }
@@ -618,12 +662,12 @@
              // Continue drawing only if in the same grid where started
              if (gridRow === currentDrawingGrid.row && gridCol === currentDrawingGrid.col) {
                  // Ensure path array exists and is large enough
-                 if (!paths[gridRow] || gridCol >= paths[gridRow].length || !paths[gridRow][gridCol]) return;
+                 if (!paths[gridRow] || gridCol >= paths[gridRow].length || !paths[gridRow][gridCol]) return; // Should exist
                  const currentPath = paths[gridRow][gridCol];
-                 const lastPoint = currentPath[currentPath.length - 1];
+                 const lastPoint = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
                  // Add cell if different from last and within bounds
                  if (!lastPoint || lastPoint.row !== cellRow || lastPoint.col !== cellCol) {
-                     if (cellRow < gridDimension && cellCol < gridDimension) {
+                     if (cellRow >= 0 && cellRow < gridDimension && cellCol >= 0 && cellCol < gridDimension) {
                          currentPath.push({ row: cellRow, col: cellCol });
                          updateGridMarkers(); // Update screen markers
                      }
@@ -632,67 +676,86 @@
         }
 
         function handleInteractionEnd() {
-            if (isDrawing) { isDrawing = false; currentDrawingGrid = null; }
+            if (isDrawing) {
+                console.log("Drawing ended.");
+                isDrawing = false;
+                currentDrawingGrid = null;
+            }
         }
 
         function handleMouseDown(e) { handleInteractionStart(e.target); }
         function handleMouseMove(e) { if (e.buttons !== 1) { if (isDrawing) handleInteractionEnd(); return; } handleInteractionMove(e.target); }
-        function handleMouseUp() { handleInteractionEnd(); }
+        function handleMouseUp() { handleInteractionEnd(); } // Global listener
         function handleTouchStart(e) { e.preventDefault(); if (e.touches.length > 0) { const touch = e.touches[0]; const targetElement = document.elementFromPoint(touch.clientX, touch.clientY); handleInteractionStart(targetElement); } }
         function handleTouchMove(e) { e.preventDefault(); if (e.touches.length > 0) { const touch = e.touches[0]; const targetElement = document.elementFromPoint(touch.clientX, touch.clientY); handleInteractionMove(targetElement); } }
-        function handleTouchEnd() { handleInteractionEnd(); }
+        function handleTouchEnd() { handleInteractionEnd(); } // Global listener
 
         // --- Visual Update (Screen) ---
         function updateGridMarkers() {
-            if (!gridCreated) return; // Don't try to update if grid doesn't exist
+            if (!gridCreated || !activeGridData || activeGridData.length === 0) return;
+
             activeGridData.forEach(gridInfo => { // Iterate screen grid data
                 const gridElement = gridInfo.element;
                 if (!gridElement) return;
                 const gridRow = gridInfo.gridRow;
                 const gridCol = gridInfo.gridCol;
 
-                gridElement.querySelectorAll('.cell').forEach(cell => {
+                const cells = gridElement.querySelectorAll('.cell');
+                if (!cells || cells.length === 0) return; // Skip if no cells
+
+                // 1. Reset all cells in this grid first
+                cells.forEach(cell => {
                     cell.classList.remove('start-point', 'path');
                 });
 
-                // Ensure firstRowStartPoints array is large enough
+                // 2. Apply start point marker (applies to ALL rows based on first row's setting)
                 if (gridCol < firstRowStartPoints.length) {
-                    const startPoint = firstRowStartPoints[gridCol];
+                    const startPoint = firstRowStartPoints[gridCol]; // Get start point defined in the first row
                     if (startPoint && startPoint.row < gridDimension && startPoint.col < gridDimension) {
+                        // Find the corresponding cell in the CURRENT gridRow
                         const startCell = gridElement.querySelector(`.cell[data-row="${startPoint.row}"][data-col="${startPoint.col}"]`);
-                        if (startCell) startCell.classList.add('start-point');
+                        if (startCell) {
+                             startCell.classList.add('start-point');
+                        }
                     }
                 }
 
-                if (gridRow === 0) { // Path only on first row
-                    // Ensure paths array is large enough
-                    if (paths[gridRow] && gridCol < paths[gridRow].length) {
-                        const pathPoints = paths[gridRow][gridCol] ? paths[gridRow][gridCol] : [];
-                        pathPoints.forEach(point => {
-                             if (point.row < gridDimension && point.col < gridDimension) {
-                                const pathCell = gridElement.querySelector(`.cell[data-row="${point.row}"][data-col="${point.col}"]`);
-                                // Only add 'path' class if it's not the start point
-                                if (pathCell && !pathCell.classList.contains('start-point')) {
-                                    pathCell.classList.add('path');
-                                }
-                             }
-                        });
-                    }
+                // 3. Apply path markers (only relevant for first row of grids where drawing happens)
+                if (gridRow === 0 && paths[gridRow] && gridCol < paths[gridRow].length) {
+                    const pathPoints = paths[gridRow][gridCol] || []; // Get path or empty array
+                    pathPoints.forEach(point => {
+                         if (point.row >= 0 && point.row < gridDimension && point.col >= 0 && point.col < gridDimension) {
+                            const pathCell = gridElement.querySelector(`.cell[data-row="${point.row}"][data-col="${point.col}"]`);
+                            // Add 'path' class only if it's not the start point
+                            if (pathCell && !pathCell.classList.contains('start-point')) {
+                                pathCell.classList.add('path');
+                            }
+                         }
+                    });
                 }
             });
+             // console.log("Screen markers updated."); // Log verbosely if needed
         }
 
         // --- UI Control Handlers ---
         function handleReset() {
             console.log("Reset button clicked.");
-            if (!gridCreated) return; // Don't reset if no grid exists
+            if (!gridCreated) {
+                 showStatusMessage("No hay rejilla para reiniciar.", "warning");
+                 return;
+            }
 
-            // Reset only drawing state
+            // Reset only drawing state (start points and paths for the first row)
             firstRowStartPoints = Array(numGridCols).fill(null);
-            paths = Array(numGridRows).fill().map(() => Array(numGridCols).fill().map(() => []));
+             // Reset paths only for the first row where drawing is allowed
+            if (paths.length > 0) {
+                 paths[0] = Array(numGridCols).fill().map(() => []);
+            }
+            // Keep paths for other rows if they were ever populated (though currently they aren't)
+
             isDrawing = false;
             currentDrawingGrid = null;
-            updateGridMarkers(); // Update screen
+            updateGridMarkers(); // Update the screen display to reflect cleared state
             showStatusMessage('Marcadores reiniciados.', 'success');
         }
 
@@ -700,7 +763,7 @@
         function handleSavePdf() {
             console.log("Save PDF button clicked.");
              if (!gridCreated) {
-                alert('Por favor, aplica una configuración primero para crear la rejilla.');
+                showStatusMessage('Error: Aplica una configuración para crear la rejilla primero.', 'error');
                 return;
             }
 
@@ -712,10 +775,13 @@
             let userFilename = prompt("Introduce el nombre para guardar el archivo PDF:", defaultFilename);
 
             if (userFilename === null) { console.log("PDF save cancelled."); showStatusMessage('Guardado cancelado.', 'warning'); return; }
-            if (userFilename.trim() === "") { userFilename = defaultFilename; }
+            userFilename = userFilename.trim() || defaultFilename;
             if (!userFilename.toLowerCase().endsWith('.pdf')) { userFilename += '.pdf'; }
 
             showStatusMessage('Generando PDF (puede tardar unos segundos)...', 'info');
+            savePdfButton.disabled = true; // Disable button during generation
+            savePdfButton.textContent = 'Generando...';
+
 
             // --- Create Temporary Structure for PDF ---
             const pdfRenderDiv = document.createElement('div');
@@ -744,8 +810,8 @@
              const totalContentHeightPx = totalGridHeightPx + totalSpacingHeightPx;
 
              // Calculate offset to center the content block within the printable area
-             const offsetX = (printableWidthPx - totalContentWidthPx) / 2;
-             const offsetY = (printableHeightPx - totalContentHeightPx) / 2;
+             const offsetX = Math.max(0,(printableWidthPx - totalContentWidthPx) / 2);
+             const offsetY = Math.max(0,(printableHeightPx - totalContentHeightPx) / 2);
 
             console.log(`PDF Layout (px): Grid=${pdfGridSizePx}px, Spacing=${pdfSpacingPx}px, OffsetX=${offsetX.toFixed(1)}px, OffsetY=${offsetY.toFixed(1)}px`);
 
@@ -753,7 +819,8 @@
             const pdfGridBorderWidth = Math.max(1, Math.round(0.2 * MM_TO_PX)); // At least 1px
             const pdfCellBorderWidth = Math.max(1, Math.round(0.1 * MM_TO_PX)); // At least 1px
 
-            // Create PDF grid elements using PIXELS
+             // --- Create PDF Grid Elements (using PIXELS) ---
+            const pdfFragment = document.createDocumentFragment();
             for (let r = 0; r < currentRows; r++) {
                 for (let c = 0; c < currentCols; c++) {
                     // Calculate top-left corner in PIXELS including margin, centering offset, and fixed spacing
@@ -763,46 +830,55 @@
 
                     const gridDiv = document.createElement('div');
                     gridDiv.className = 'grid'; // Use class for styling in .pdf-render-area
-                    gridDiv.style.position = 'absolute';
+                    // gridDiv.style.position = 'absolute'; // Position is now set in CSS
                     gridDiv.style.left = `${gridX}px`;
                     gridDiv.style.top = `${gridY}px`;
                     gridDiv.style.width = `${pdfGridSizePx}px`;
                     gridDiv.style.height = `${pdfGridSizePx}px`;
                     gridDiv.style.borderWidth = `${pdfGridBorderWidth}px`; // Set border width in px
-                    gridDiv.style.boxSizing = 'border-box';
+                    gridDiv.style.boxSizing = 'border-box'; // Ensure border width is included
 
                     const cellWidthPx = pdfGridSizePx / currentN;
                     const cellHeightPx = pdfGridSizePx / currentN;
 
-                    for (let rCell = 0; rCell < currentN; rCell++) {
-                        for (let cCell = 0; cCell < currentN; cCell++) {
-                            const cell = document.createElement('div');
-                            cell.className = 'cell'; // Base class for border
-                            cell.style.position = 'absolute';
-                            cell.style.left = `${cCell * cellWidthPx}px`;
-                            cell.style.top = `${rCell * cellHeightPx}px`;
-                            cell.style.width = `${cellWidthPx}px`;
-                            cell.style.height = `${cellHeightPx}px`;
-                            cell.style.borderWidth = `${pdfCellBorderWidth}px`; // Set border width in px
-                            cell.style.boxSizing = 'border-box';
+                     if (cellWidthPx > 0.1 && cellHeightPx > 0.1) { // Avoid tiny cells
+                        const cellFragment = document.createDocumentFragment();
+                        for (let rCell = 0; rCell < currentN; rCell++) {
+                            for (let cCell = 0; cCell < currentN; cCell++) {
+                                const cell = document.createElement('div');
+                                cell.className = 'cell'; // Base class for border
+                                // cell.style.position = 'absolute'; // Position is now set in CSS
+                                cell.style.left = `${cCell * cellWidthPx}px`;
+                                cell.style.top = `${rCell * cellHeightPx}px`;
+                                cell.style.width = `${cellWidthPx}px`;
+                                cell.style.height = `${cellHeightPx}px`;
+                                cell.style.borderWidth = `${pdfCellBorderWidth}px`; // Set border width in px
+                                cell.style.boxSizing = 'border-box'; // Ensure border width is included
 
-                            // Apply coloring based on state using CLASSES
-                            const startPoint = (c < firstRowStartPoints.length) ? firstRowStartPoints[c] : null;
-                            if (startPoint && startPoint.row === rCell && startPoint.col === cCell) {
-                                cell.classList.add('start-point'); // Add start-point class
-                            } else if (r === 0) { // Path only on first row of grids
-                                const pathPoints = (paths[r] && c < paths[r].length && paths[r][c]) ? paths[r][c] : [];
-                                const isPath = pathPoints.some(p => p.row === rCell && p.col === cCell);
-                                if (isPath && !(startPoint && startPoint.row === rCell && startPoint.col === cCell)) {
-                                     cell.classList.add('path'); // Add path class
+                                // Apply coloring based on state using CLASSES
+                                // Check start point (applies to all rows based on first row's setting)
+                                const startPoint = (c < firstRowStartPoints.length) ? firstRowStartPoints[c] : null;
+                                if (startPoint && startPoint.row === rCell && startPoint.col === cCell) {
+                                    cell.classList.add('start-point');
+                                } else if (r === 0) { // Path only drawn based on first row's path
+                                    const pathPoints = (paths[r] && c < paths[r].length && paths[r][c]) ? paths[r][c] : [];
+                                    const isPath = pathPoints.some(p => p.row === rCell && p.col === cCell);
+                                    // Add path class only if it's part of the path AND not the start point
+                                    if (isPath && !(startPoint && startPoint.row === rCell && startPoint.col === cCell)) {
+                                         cell.classList.add('path');
+                                    }
                                 }
+                                cellFragment.appendChild(cell);
                             }
-                            gridDiv.appendChild(cell);
                         }
-                    }
-                    pdfRenderDiv.appendChild(gridDiv);
+                         gridDiv.appendChild(cellFragment);
+                     } else {
+                         console.warn(`Skipping cells for PDF grid [${r}, ${c}] due to small calculated size: ${cellWidthPx.toFixed(2)}x${cellHeightPx.toFixed(2)}px`);
+                     }
+                    pdfFragment.appendChild(gridDiv);
                 }
             }
+             pdfRenderDiv.appendChild(pdfFragment);
 
             // Add to DOM *before* calling html2pdf
             document.body.appendChild(pdfRenderDiv);
@@ -817,11 +893,14 @@
                     logging: false,
                     useCORS: true,
                     backgroundColor: '#ffffff', // Explicit background
-                     // Let html2canvas determine width/height from the element
-                     // width: a4WidthPx, // Explicit width/height might interfere with scaling
-                     // height: a4HeightPx,
-                     // windowWidth: a4WidthPx,
-                     // windowHeight: a4HeightPx
+                    width: a4WidthPx, // Explicitly set canvas width/height
+                    height: a4HeightPx,
+                    windowWidth: a4WidthPx, // Hint to html2canvas about rendering dimensions
+                    windowHeight: a4HeightPx,
+                    onclone: (clonedDoc) => {
+                         // This function runs on the cloned document *before* rendering
+                         console.log("Cloned document created for PDF rendering.");
+                     }
                 },
                 jsPDF: {
                     unit: 'mm', // Output unit is still mm
@@ -830,9 +909,6 @@
                 }
             };
 
-            // Disable button while generating
-            savePdfButton.disabled = true;
-            savePdfButton.textContent = 'Generando...';
 
             // Add a small delay before generating PDF
             setTimeout(() => {
@@ -853,22 +929,24 @@
                          if (document.body.contains(pdfRenderDiv)) {
                              document.body.removeChild(pdfRenderDiv);
                              console.log("Removed temporary PDF render div.");
+                         } else {
+                              console.warn("Could not find pdfRenderDiv in body to remove.");
                          }
                     });
-            }, 100); // 100ms delay
+            }, 150); // 150ms delay
 
         }
 
 
         function handleResize() {
-            console.log("Window resized.");
-             if (gridCreated) { // Only recreate if grid exists
-                 console.log("Recreating screen grid overlay due to resize.");
-                 clearTimeout(window.resizeTimeout);
-                 window.resizeTimeout = setTimeout(() => {
+            // Debounce resize event
+            clearTimeout(window.resizeTimeout);
+            window.resizeTimeout = setTimeout(() => {
+                console.log("Window resize detected, recreating screen grid.");
+                 if (gridCreated) { // Only recreate if a grid is currently displayed
                      createManualGridOverlay(); // Recreate screen grid
-                 }, 250);
-             }
+                 }
+            }, 250); // 250ms delay
         }
 
         // --- User Feedback ---
@@ -881,19 +959,24 @@
             statusMessageContainer.appendChild(messageElement);
             // Make non-error messages auto-hide
             if (type !== 'error') {
-                 setTimeout(hideStatusMessage, 5000); // Hide after 5 seconds
+                 // Store timeout ID to potentially clear it
+                 window.statusTimeout = setTimeout(hideStatusMessage, 5000); // Hide after 5 seconds
             }
         }
 
         function hideStatusMessage() {
+             // Clear any existing auto-hide timeout
+             clearTimeout(window.statusTimeout);
              const existingMessage = document.getElementById('dynamicStatusMessage');
              if (existingMessage) {
                  existingMessage.remove();
              }
         }
 
-        // --- Initial Calculation ---
-        calculateAndDisplayMaxGrids(); // Calculate and show max values on load
+        // --- Initial Setup Call (handled by DOMContentLoaded) ---
+        // calculateAndDisplayMaxGrids();
+        // resetState();
+        // setupEventListeners();
 
     </script>
 </body>
